@@ -1,0 +1,25 @@
+{
+  "id": "L059",
+  "source": "apollo_export",
+  "received_at": "2026-09-20T11:18:00Z",
+  "person": {
+    "name": "Jan Brück",
+    "title": "Founder",
+    "company": "Flowstate Automation GmbH",
+    "location": "Hamburg, DE"
+  },
+  "company": {
+    "name": "Flowstate Automation GmbH",
+    "domain": "flowstate-automation.de",
+    "description": "We build AI agents and workflow automations for agencies and small businesses.",
+    "location": "Hamburg, DE",
+    "size": "2-10",
+    "services": [
+      "AI agents",
+      "Make and n8n automations",
+      "automation consulting"
+    ]
+  },
+  "message": null,
+  "tags": []
+}

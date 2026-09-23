@@ -1,0 +1,25 @@
+{
+  "id": "L064",
+  "source": "email_reply",
+  "received_at": "2026-09-21T15:50:00Z",
+  "person": {
+    "name": "Hugo Marlow",
+    "title": "Founder",
+    "company": "Studio Marlow",
+    "location": "London, UK"
+  },
+  "company": {
+    "name": "Studio Marlow",
+    "domain": "studiomarlow.co.uk",
+    "description": "Design studio for consumer brands; 12 people.",
+    "location": "London, UK",
+    "size": "11-50"
+  },
+  "message": {
+    "text": "It has been a year since we paused. We have grown to 12 people and the reporting problem is back with a vengeance. Can we pick up where we left off?",
+    "subject": "Picking things back up",
+    "from_name": "Hugo Marlow",
+    "from_domain": "studiomarlow.co.uk"
+  },
+  "tags": []
+}

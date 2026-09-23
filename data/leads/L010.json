@@ -1,0 +1,25 @@
+{
+  "id": "L010",
+  "source": "referral",
+  "received_at": "2026-09-12T14:47:00Z",
+  "person": {
+    "name": "Daniel Weber",
+    "title": "Founder",
+    "company": "Weber & Söhne Digital",
+    "location": "Cologne, DE"
+  },
+  "company": {
+    "name": "Weber & Söhne Digital",
+    "domain": "webersoehne.de",
+    "description": "Digital marketing agency for mid-sized manufacturers; 15 people.",
+    "location": "Cologne, DE",
+    "size": "11-50"
+  },
+  "message": {
+    "text": "Jonas from Hafenblick gave me your contact. We have the same reporting problem they had — 16 clients, decks built by hand every month — and I would rather not wait. Are you free for a call early next week? Budget is not the issue, time is.",
+    "subject": "Referral from Hafenblick",
+    "from_name": "Daniel Weber",
+    "from_domain": "webersoehne.de"
+  },
+  "tags": []
+}

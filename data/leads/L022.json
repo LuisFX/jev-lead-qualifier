@@ -1,0 +1,27 @@
+{
+  "id": "L022",
+  "source": "email_reply",
+  "received_at": "2026-09-15T09:08:00Z",
+  "person": {
+    "name": "Rasmus Kjær",
+    "title": "Head of Client Success",
+    "company": "Nordic Peak Agency",
+    "location": "Aarhus, DK"
+  },
+  "company": {
+    "name": "Nordic Peak Agency",
+    "domain": "nordicpeak.dk",
+    "description": "Full-service digital agency; 35 people, 40 active clients.",
+    "location": "Aarhus, DK",
+    "size": "11-50"
+  },
+  "message": {
+    "text": "We have grown to 35 people and 40 clients and the freelancer handovers are killing quality — two clients left last quarter because deliverables were late. I am collecting options for our leadership offsite in October. What would a first project with you look like?",
+    "subject": "Re: handovers",
+    "from_name": "Rasmus Kjær",
+    "from_domain": "nordicpeak.dk"
+  },
+  "tags": [
+    "churn"
+  ]
+}

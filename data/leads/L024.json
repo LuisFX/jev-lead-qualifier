@@ -1,0 +1,21 @@
+{
+  "id": "L024",
+  "source": "linkedin_export",
+  "received_at": "2026-09-17T11:22:00Z",
+  "person": {
+    "name": "Benedikt Hauser",
+    "title": "Founder",
+    "company": "Hauser Studio",
+    "location": "Basel, CH",
+    "bio": "Founder of Hauser Studio, 7 people, brand identity for Swiss SMEs. Looking to modernise how we brief and hand over work to our freelancers — open to talking with automation specialists this autumn."
+  },
+  "company": {
+    "name": "Hauser Studio",
+    "domain": "hauserstudio.ch",
+    "description": "Brand identity studio for Swiss small and mid-sized companies.",
+    "location": "Basel, CH",
+    "size": "2-10"
+  },
+  "message": null,
+  "tags": []
+}

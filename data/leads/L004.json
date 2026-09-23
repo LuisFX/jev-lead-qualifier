@@ -1,0 +1,30 @@
+{
+  "id": "L004",
+  "source": "website_form",
+  "received_at": "2026-09-17T09:08:00Z",
+  "person": {
+    "name": "Sven Ahlgren",
+    "title": "Managing Director",
+    "company": "Northlight Studios",
+    "location": "Stockholm, SE"
+  },
+  "company": {
+    "name": "Northlight Studios",
+    "domain": "northlight.se",
+    "description": "Branding and video production studio working with Nordic consumer brands.",
+    "location": "Stockholm, SE",
+    "size": "11-50",
+    "services": [
+      "brand identity",
+      "video production",
+      "motion design"
+    ]
+  },
+  "message": {
+    "text": "We are a 30-person branding and video studio. Our delivery runs on about 20 freelancers and every project handover is a mess of Notion pages and WhatsApp threads. I want this fixed before we take on two new retainers in November. Budget is approved. Please send me your availability for a 30-minute call.",
+    "subject": "Freelancer handovers",
+    "from_name": "Sven Ahlgren",
+    "from_domain": "northlight.se"
+  },
+  "tags": []
+}

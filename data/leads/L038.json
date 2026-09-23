@@ -1,0 +1,21 @@
+{
+  "id": "L038",
+  "source": "linkedin_export",
+  "received_at": "2026-09-12T16:57:00Z",
+  "person": {
+    "name": "Henrik Dahl",
+    "title": "Founder",
+    "company": "Dahl & Co",
+    "location": "Oslo, NO",
+    "bio": "Founder of Dahl & Co — a 9-person brand studio in Oslo. Sailing on weekends."
+  },
+  "company": {
+    "name": "Dahl & Co",
+    "domain": "dahlco.no",
+    "description": "Brand strategy and identity studio.",
+    "location": "Oslo, NO",
+    "size": "2-10"
+  },
+  "message": null,
+  "tags": []
+}

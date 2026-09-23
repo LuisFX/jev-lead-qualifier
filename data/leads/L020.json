@@ -1,0 +1,28 @@
+{
+  "id": "L020",
+  "source": "email_reply",
+  "received_at": "2026-09-13T15:54:00Z",
+  "person": {
+    "name": "Jón Einarsson",
+    "title": "Owner",
+    "company": "Reykjavik Growth Lab",
+    "location": "Reykjavik, IS"
+  },
+  "company": {
+    "name": "Reykjavik Growth Lab",
+    "domain": "rvkgrowth.is",
+    "description": "Five-person performance marketing shop for Icelandic tourism and retail businesses.",
+    "location": "Reykjavik, IS",
+    "size": "2-10"
+  },
+  "message": {
+    "text": "We are a five-person performance shop, around €15k a month in revenue. Leads from our site get answered when someone remembers. Would be good to understand what a setup like this costs before we talk.",
+    "subject": "Re: follow-up",
+    "from_name": "Jón Einarsson",
+    "from_domain": "rvkgrowth.is"
+  },
+  "tags": [
+    "revenue:10k_30k",
+    "demo:revenue_gate"
+  ]
+}

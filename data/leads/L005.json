@@ -1,0 +1,30 @@
+{
+  "id": "L005",
+  "source": "instantly_reply",
+  "received_at": "2026-09-11T10:15:00Z",
+  "person": {
+    "name": "Priya Nandakumar",
+    "title": "Head of Client Services",
+    "company": "Brightwave Digital",
+    "location": "Manchester, UK"
+  },
+  "company": {
+    "name": "Brightwave Digital",
+    "domain": "brightwave.co.uk",
+    "description": "Digital marketing agency for retail and hospitality brands across the UK.",
+    "location": "Manchester, UK",
+    "size": "11-50",
+    "services": [
+      "SEO",
+      "paid media",
+      "email marketing"
+    ]
+  },
+  "message": {
+    "text": "Your email landed at the right time. Our monthly client reporting takes my three account managers a full week each month, and we are adding four clients in October. I would like a proposal for automating the reporting first — when could you walk us through what you have done for similar agencies?",
+    "subject": "Re: reporting week",
+    "from_name": "Priya Nandakumar",
+    "from_domain": "brightwave.co.uk"
+  },
+  "tags": []
+}

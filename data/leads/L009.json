@@ -1,0 +1,32 @@
+{
+  "id": "L009",
+  "source": "website_form",
+  "received_at": "2026-09-21T14:43:00Z",
+  "person": {
+    "name": "Elena Marchetti",
+    "title": "Owner",
+    "company": "Marchetti Media",
+    "location": "Zurich, CH"
+  },
+  "company": {
+    "name": "Marchetti Media",
+    "domain": "marchettimedia.ch",
+    "description": "Performance marketing agency for DACH e-commerce brands.",
+    "location": "Zurich, CH",
+    "size": "11-50",
+    "services": [
+      "performance marketing",
+      "Shopify apps",
+      "analytics"
+    ]
+  },
+  "message": {
+    "text": "We are 11 people doing performance marketing for DACH e-commerce brands, about €60k a month. Client reporting is manual and my ops lead is leaving in December, so the process has to be automated before she goes. I need someone who can run this as a project starting in October. Proposal please, and a call to discuss.",
+    "subject": "Reporting before December",
+    "from_name": "Elena Marchetti",
+    "from_domain": "marchettimedia.ch"
+  },
+  "tags": [
+    "revenue:30k_100k"
+  ]
+}

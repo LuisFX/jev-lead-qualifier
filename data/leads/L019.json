@@ -1,0 +1,24 @@
+{
+  "id": "L019",
+  "source": "website_form",
+  "received_at": "2026-09-10T15:50:00Z",
+  "person": {
+    "name": "Isabel Fontaine",
+    "title": "Head of Marketing",
+    "company": "Cadence Studio",
+    "location": "Dublin, IE"
+  },
+  "company": {
+    "name": "Cadence Studio",
+    "domain": "cadencestudio.ie",
+    "description": "Content and social agency for consumer tech and fintech brands; 18 people.",
+    "location": "Dublin, IE",
+    "size": "11-50"
+  },
+  "message": {
+    "text": "Our founders asked me to look into automating our monthly client dashboards — we have 9 retainer clients and it takes two of us three days every month. Could you send over a rough price range and a couple of case studies?",
+    "from_name": "Isabel Fontaine",
+    "from_domain": "cadencestudio.ie"
+  },
+  "tags": []
+}

@@ -1,0 +1,25 @@
+{
+  "id": "L058",
+  "source": "instantly_reply",
+  "received_at": "2026-09-19T10:11:00Z",
+  "person": {
+    "name": "Ben Hartmann",
+    "title": "Co-founder",
+    "company": "Growth Hackers Berlin",
+    "location": "Berlin, DE"
+  },
+  "company": {
+    "name": "Growth Hackers Berlin",
+    "domain": "growthhackers-berlin.de",
+    "description": "Cold email agency for B2B consultancies.",
+    "location": "Berlin, DE",
+    "size": "2-10"
+  },
+  "message": {
+    "text": "Quick one — we help AI consultancies like yours book 20+ qualified calls a month with cold email. Want a free audit of your current outbound?",
+    "subject": "20 calls a month",
+    "from_name": "Ben Hartmann",
+    "from_domain": "growthhackers-berlin.de"
+  },
+  "tags": []
+}

@@ -1,0 +1,25 @@
+{
+  "id": "L013",
+  "source": "email_reply",
+  "received_at": "2026-09-05T09:08:00Z",
+  "person": {
+    "name": "Sofia Lindgren",
+    "title": "Marketing Manager",
+    "company": "Aurora Coaching Collective",
+    "location": "Malmö, SE"
+  },
+  "company": {
+    "name": "Aurora Coaching Collective",
+    "domain": "auroracoaching.se",
+    "description": "Collective of leadership coaches running webinars and group programmes for managers.",
+    "location": "Malmö, SE",
+    "size": "2-10"
+  },
+  "message": {
+    "text": "Thanks, I am forwarding this to our founder. We do struggle with follow-up on webinar leads — most of them never hear from us again. Could you send a couple of examples of what you have built for coaching businesses so she can have a look?",
+    "subject": "Re: webinar leads",
+    "from_name": "Sofia Lindgren",
+    "from_domain": "auroracoaching.se"
+  },
+  "tags": []
+}

@@ -1,0 +1,21 @@
+{
+  "id": "L036",
+  "source": "linkedin_export",
+  "received_at": "2026-09-10T14:43:00Z",
+  "person": {
+    "name": "Robin Achterberg",
+    "title": "Account Director",
+    "company": "Waterfront Agency",
+    "location": "Amsterdam, NL",
+    "bio": "Account Director at Waterfront Agency (16 people, integrated campaigns). Ex-Dentsu. I love a good dashboard."
+  },
+  "company": {
+    "name": "Waterfront Agency",
+    "domain": "waterfront-agency.nl",
+    "description": "Integrated marketing agency for Dutch consumer brands.",
+    "location": "Amsterdam, NL",
+    "size": "11-50"
+  },
+  "message": null,
+  "tags": []
+}

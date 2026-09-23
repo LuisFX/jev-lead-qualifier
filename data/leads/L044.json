@@ -1,0 +1,24 @@
+{
+  "id": "L044",
+  "source": "website_form",
+  "received_at": "2026-09-18T13:36:00Z",
+  "person": {
+    "name": "Stefan Gruber",
+    "title": "Managing Director",
+    "company": "Gruber Werbeagentur",
+    "location": "Linz, AT"
+  },
+  "company": {
+    "name": "Gruber Werbeagentur",
+    "domain": "gruber-werbung.at",
+    "description": "Classic full-service advertising agency; print, outdoor, radio; 25 people.",
+    "location": "Linz, AT",
+    "size": "11-50"
+  },
+  "message": {
+    "text": "We are a classic full-service ad agency, 25 people. Not sure the AI stuff is for us, but I read your case study. If you ever do a webinar for agency owners, let me know.",
+    "from_name": "Stefan Gruber",
+    "from_domain": "gruber-werbung.at"
+  },
+  "tags": []
+}

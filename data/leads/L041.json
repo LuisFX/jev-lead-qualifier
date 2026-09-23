@@ -1,0 +1,24 @@
+{
+  "id": "L041",
+  "source": "website_form",
+  "received_at": "2026-09-15T10:15:00Z",
+  "person": {
+    "name": "Yara Boutros",
+    "title": "Founder",
+    "company": "Boutros Studio",
+    "location": "Berlin, DE"
+  },
+  "company": {
+    "name": "Boutros Studio",
+    "domain": "boutros.studio",
+    "description": "Small brand studio for founders and restaurants; 4 people.",
+    "location": "Berlin, DE",
+    "size": "2-10"
+  },
+  "message": {
+    "text": "Saw your video. We are a small brand studio, 4 people. Everything is manual but honestly it works for now. Would love to be on your newsletter.",
+    "from_name": "Yara Boutros",
+    "from_domain": "boutros.studio"
+  },
+  "tags": []
+}

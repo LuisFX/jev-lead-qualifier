@@ -1,0 +1,21 @@
+{
+  "id": "L032",
+  "source": "apollo_export",
+  "received_at": "2026-09-06T10:15:00Z",
+  "person": {
+    "name": "Deniz Aydin",
+    "title": "Managing Partner",
+    "company": "Loft 21 Creative Studio",
+    "location": "Berlin, DE"
+  },
+  "company": {
+    "name": "Loft 21 Creative Studio",
+    "domain": "loft21.de",
+    "description": "Design and motion studio for tech and media clients.",
+    "location": "Berlin, DE",
+    "size": "11-50",
+    "news": "Loft 21 opens a second studio in Hamburg (July 2026)."
+  },
+  "message": null,
+  "tags": []
+}

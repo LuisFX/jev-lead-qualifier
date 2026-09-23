@@ -1,0 +1,21 @@
+{
+  "id": "L039",
+  "source": "linkedin_export",
+  "received_at": "2026-09-13T09:04:00Z",
+  "person": {
+    "name": "Selin Kaya",
+    "title": "COO",
+    "company": "Meltem Digital",
+    "location": "Hamburg, DE",
+    "bio": "COO at Meltem Digital (paid media, 19 people). Systems person. We just moved client onboarding to ClickUp and it is still a mess of manual steps."
+  },
+  "company": {
+    "name": "Meltem Digital",
+    "domain": "meltemdigital.de",
+    "description": "Paid media agency for DACH e-commerce and travel brands.",
+    "location": "Hamburg, DE",
+    "size": "11-50"
+  },
+  "message": null,
+  "tags": []
+}

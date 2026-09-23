@@ -1,0 +1,25 @@
+{
+  "id": "L026",
+  "source": "email_reply",
+  "received_at": "2026-09-19T13:36:00Z",
+  "person": {
+    "name": "Paul Ostrowski",
+    "title": "Founder",
+    "company": "Ostrowski Coaching",
+    "location": "Hanover, DE"
+  },
+  "company": {
+    "name": "Ostrowski Coaching",
+    "domain": "ostrowski-coaching.de",
+    "description": "Sales coaching for B2B teams; workshops and a 12-week programme. 6 people.",
+    "location": "Hanover, DE",
+    "size": "2-10"
+  },
+  "message": {
+    "text": "Interested but skeptical — we tried a chatbot for lead follow-up last year and it annoyed people, so leads still fall through today. How is what you do different? Happy to hear more.",
+    "subject": "Re: follow-up",
+    "from_name": "Paul Ostrowski",
+    "from_domain": "ostrowski-coaching.de"
+  },
+  "tags": []
+}

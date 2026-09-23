@@ -1,0 +1,24 @@
+{
+  "id": "L021",
+  "source": "linkedin_dm",
+  "received_at": "2026-09-14T16:01:00Z",
+  "person": {
+    "name": "Charlotte Mbeki",
+    "title": "Founder",
+    "company": "Kinfolk Coaching",
+    "location": "Bristol, UK"
+  },
+  "company": {
+    "name": "Kinfolk Coaching",
+    "domain": "kinfolkcoaching.co.uk",
+    "description": "Coaching for first-time founders; group cohorts and a paid community.",
+    "location": "Bristol, UK",
+    "size": "2-10"
+  },
+  "message": {
+    "text": "I coach about 60 founders a year with a team of four. Content is where I lose most of my time — repurposing every session into posts and emails. Do you have an example of what you have done for coaches? Not urgent.",
+    "from_name": "Charlotte Mbeki",
+    "channel": "LinkedIn"
+  },
+  "tags": []
+}

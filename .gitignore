@@ -1,0 +1,22 @@
+# secrets
+.env
+.env.*
+!.env.example
+
+# python
+.venv/
+__pycache__/
+*.pyc
+.pytest_cache/
+
+# API response caches (Jev answers, Apollo enrichment), cost ledgers, logs
+data/cache/
+.cache/
+*.jsonl
+*.log
+
+# backup written when the ICP editor saves
+data/icp.json.bak
+
+sandbox/
+.DS_Store

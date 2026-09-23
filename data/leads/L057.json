@@ -1,0 +1,18 @@
+{
+  "id": "L057",
+  "source": "email_reply",
+  "received_at": "2026-09-18T09:04:00Z",
+  "person": {
+    "name": "Domain Registry Services",
+    "title": "Billing",
+    "company": "Domain Registry Services"
+  },
+  "company": null,
+  "message": {
+    "text": "Dear customer, your domain lanternfield.de will expire within 24 hours. To avoid suspension confirm your credit card details and a copy of the account holder's ID using the secure link. This is an automated message.",
+    "subject": "URGENT: domain expiration notice",
+    "from_name": "Domain Registry Services",
+    "from_domain": "registry-renewals-secure.com"
+  },
+  "tags": []
+}

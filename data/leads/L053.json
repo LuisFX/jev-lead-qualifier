@@ -1,0 +1,26 @@
+{
+  "id": "L053",
+  "source": "website_form",
+  "received_at": "2026-09-14T13:36:00Z",
+  "person": {
+    "name": "Tamara Ilic",
+    "title": "Founder",
+    "company": "Ilic Social",
+    "location": "Nuremberg, DE"
+  },
+  "company": {
+    "name": "Ilic Social",
+    "domain": "ilicsocial.de",
+    "description": "Solo social media freelancer for local shops and restaurants.",
+    "location": "Nuremberg, DE",
+    "size": "solo"
+  },
+  "message": {
+    "text": "Solo social media freelancer here, around €6k a month. Reporting is annoying but I mostly want to know if this is even in reach for someone my size.",
+    "from_name": "Tamara Ilic",
+    "from_domain": "ilicsocial.de"
+  },
+  "tags": [
+    "revenue:under_10k"
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "id": "L062",
+  "source": "instantly_reply",
+  "received_at": "2026-09-21T13:36:00Z",
+  "person": {
+    "name": "James Whitfield",
+    "title": "Founder",
+    "company": "Brightpath Coaching",
+    "location": "Leeds, UK"
+  },
+  "company": {
+    "name": "Brightpath Coaching",
+    "domain": "brightpath-coaching.com",
+    "description": "Executive coaching for senior leaders.",
+    "location": "Leeds, UK",
+    "size": "2-10"
+  },
+  "message": {
+    "text": "Thanks — we spoke to Sara two weeks ago and I am still waiting on the proposal. Any update on timing?",
+    "subject": "Re: applicant follow-up",
+    "from_name": "James Whitfield",
+    "from_domain": "brightpath-coaching.com"
+  },
+  "tags": []
+}

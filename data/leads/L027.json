@@ -1,0 +1,24 @@
+{
+  "id": "L027",
+  "source": "website_form",
+  "received_at": "2026-09-01T14:43:00Z",
+  "person": {
+    "name": "Greta Holm",
+    "title": "Founder",
+    "company": "Holm Studio",
+    "location": "Gothenburg, SE"
+  },
+  "company": {
+    "name": "Holm Studio",
+    "domain": "holmstudio.se",
+    "description": "Brand and packaging design studio; 5 people.",
+    "location": "Gothenburg, SE",
+    "size": "2-10"
+  },
+  "message": {
+    "text": "Downloaded your agency automation guide — good stuff. Nothing concrete on our side yet, just following along.",
+    "from_name": "Greta Holm",
+    "from_domain": "holmstudio.se"
+  },
+  "tags": []
+}

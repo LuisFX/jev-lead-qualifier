@@ -1,0 +1,50 @@
+{
+  "book_call": {
+    "label": "Book a founder call",
+    "tiers": ["hot"],
+    "description": "The lead asks for a conversation or is clearly ready to buy: offer concrete call slots right away",
+    "text": "Hi {first_name}, thanks for reaching out. What you describe is exactly what we build. Would Tuesday 11:00 or Thursday 15:00 (CET) work for a 30-minute call? I'll bring two examples from {industry_label} teams of your size."
+  },
+  "send_case_study_agency": {
+    "label": "Send the agency case study",
+    "tiers": ["warm", "nurture"],
+    "description": "A marketing agency, studio or agency-like service business that fits but has not asked for a call yet: lead with a similar agency's result",
+    "text": "Hi {first_name}, one of our agency clients cut monthly reporting from three days to twenty minutes per client. Here is the two-page write-up. If it resonates, happy to walk you through how it would look for {company_name}."
+  },
+  "send_case_study_coach": {
+    "label": "Send the coaching case study",
+    "tiers": ["warm", "nurture"],
+    "description": "A coach or course business that fits but has not asked for a call yet: lead with a coaching business's result",
+    "text": "Hi {first_name}, a coaching business with a similar setup automated their applicant follow-up and onboarding; enrolments went up without more sales calls. Here is the short case study. Happy to show how it would map to {company_name}."
+  },
+  "ask_qualifying_question_size": {
+    "label": "Ask about team size and clients",
+    "tiers": ["warm", "nurture"],
+    "description": "The pain fits but company size, revenue or client count is unknown: ask one qualifying question before investing time",
+    "text": "Hi {first_name}, thanks for the note. Quick question so I can point you to the right examples: roughly how many clients do you serve today, and how big is the team?"
+  },
+  "ask_qualifying_question_pain": {
+    "label": "Ask what to automate first",
+    "tiers": ["warm", "nurture"],
+    "description": "The company fits but the message does not say what hurts: ask which process they would automate first",
+    "text": "Hi {first_name}, appreciate you reaching out. If you could hand one recurring task at {company_name} to software tomorrow, which one would it be? That tells me where to start."
+  },
+  "add_to_nurture": {
+    "label": "Add to nurture",
+    "tiers": ["nurture"],
+    "description": "The lead is browsing or the fit is weak: no personal outreach, add to the newsletter and content track",
+    "text": "Added to the {industry_label} nurture track. No personal outreach; re-scored automatically when they reply or visit again."
+  },
+  "route_to_account_owner": {
+    "label": "Hand to the account owner",
+    "tiers": ["existing"],
+    "description": "The company is already a customer or an open opportunity in the CRM",
+    "text": "Existing account: {account_name} (owner {account_owner}). Message forwarded to the owner; no new outreach sequence started."
+  },
+  "decline_politely": {
+    "label": "Polite decline (draft)",
+    "tiers": ["disqualify"],
+    "description": "Vendor pitches, students, competitors, enterprises and pre-revenue companies: draft a polite decline for a human to glance at",
+    "text": "Hi {first_name}, thanks for getting in touch. We are not the right fit for this at the moment, but I appreciate you thinking of us. All the best with it."
+  }
+}

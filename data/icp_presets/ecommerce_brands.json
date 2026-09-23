@@ -1,0 +1,54 @@
+{
+  "id": "ecommerce_brands",
+  "name": "E-commerce brands",
+  "client": "Lanternfield Automation",
+  "summary": "Lanternfield Automation automates operations for direct-to-consumer and small e-commerce brands: customer service, returns handling, product content, review management and marketplace reporting. Buyers are brand owners and e-commerce managers with steady order volume.",
+  "industries": {
+    "dtc_brand": "A direct-to-consumer brand selling its own physical products online (fashion, food, beauty, home, supplements)",
+    "online_retailer": "An online shop reselling third-party products, possibly across marketplaces such as Amazon or Zalando",
+    "subscription_box": "A subscription commerce business shipping recurring boxes or consumables",
+    "shopify_agency": "An agency building and running online shops for e-commerce clients"
+  },
+  "size_bands": ["solo", "2-10", "11-50", "51-200", "200+"],
+  "target_size_bands": ["2-10", "11-50"],
+  "revenue_bands": ["under_10k", "10k_30k", "30k_100k", "over_100k"],
+  "revenue_band_labels": {
+    "under_10k": "under EUR 10k monthly revenue",
+    "10k_30k": "EUR 10k to 30k monthly revenue",
+    "30k_100k": "EUR 30k to 100k monthly revenue",
+    "over_100k": "over EUR 100k monthly revenue"
+  },
+  "min_revenue_band": "30k_100k",
+  "maturity_fit": [0.05, 0.3, 1.0, 1.0, 0.4],
+  "geography": "Germany, Austria, Switzerland, Benelux and the UK",
+  "personas": {
+    "brand_owner": {"description": "Founder or owner of the brand or shop", "weight": 1.0},
+    "ecommerce_manager": {"description": "E-commerce manager, head of digital or shop manager", "weight": 0.9},
+    "head_of_customer_service": {"description": "Customer service lead or head of support", "weight": 0.8},
+    "marketing_lead": {"description": "Head of marketing, performance marketing manager or CRM manager", "weight": 0.6}
+  },
+  "pains": {
+    "customer_service_volume": {"description": "Order status, returns and product questions flood the inbox and social channels", "weight": 1.0},
+    "returns_handling": {"description": "Returns and exchanges are processed by hand; refunds are slow", "weight": 0.8},
+    "product_content": {"description": "Writing and translating product descriptions, variants and marketplace listings is slow", "weight": 0.8},
+    "marketplace_reporting": {"description": "Sales, ad and inventory numbers from several channels are stitched together manually", "weight": 0.9},
+    "review_management": {"description": "Reviews and ratings are not monitored or answered consistently", "weight": 0.6}
+  },
+  "disqualifiers": {
+    "hobby_shop": "A hobby shop or side project with very few orders, or explicitly no budget",
+    "enterprise": "A large retailer or corporate group with hundreds or thousands of employees",
+    "competitor": "The company sells e-commerce automation, AI agents or automation consulting itself",
+    "student_or_academic": "A student, researcher, journalist or job seeker asking for an interview or a job"
+  },
+  "intent_signals": ["asks for a call or proposal", "states a timeline (before peak season)", "mentions a budget", "describes a concrete process", "recent expansion or new marketplace"],
+  "weights": {"industry": 0.35, "maturity": 0.2, "persona": 0.2, "pains": 0.25},
+  "intent_weights": {"purchase_intent": 0.5, "asks_for_meeting": 0.2, "budget_signal": 0.1, "urgency": 0.1, "timeline": 0.1},
+  "thresholds": {"fit_hot": 0.62, "fit_warm": 0.42, "intent_hot": 0.6, "intent_warm": 0.25, "disqualifier_p": 0.7, "spam_p": 0.8, "dedupe_p": 0.6, "confidence_floor": 0.55, "pain_p": 0.6, "evidence_p": 0.35},
+  "routes": {
+    "hot": {"label": "Founder call", "owner": "Elena Marquardt (founder / closer)", "action": "Offer two 30-minute slots this week"},
+    "warm": {"label": "SDR sequence A", "owner": "Sara (SDR)", "action": "3-step sequence with the e-commerce case study"},
+    "nurture": {"label": "Nurture track", "owner": "Marketing", "action": "E-commerce ops newsletter"},
+    "disqualify": {"label": "Polite decline", "owner": "Nobody (draft only)", "action": "Decline template drafted; never auto-sent"},
+    "existing": {"label": "Account owner", "owner": "CRM owner", "action": "Hand to the account owner"}
+  }
+}

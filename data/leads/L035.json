@@ -1,0 +1,23 @@
+{
+  "id": "L035",
+  "source": "apollo_export",
+  "received_at": "2026-09-09T13:36:00Z",
+  "person": {
+    "name": "Carla Neumann",
+    "title": "Head of Marketing",
+    "company": "Helios Growth",
+    "location": "Munich, DE"
+  },
+  "company": {
+    "name": "Helios Growth",
+    "domain": "heliosgrowth.de",
+    "description": "Performance marketing agency for large consumer brands; 80 people in Munich and Hamburg.",
+    "location": "Munich, DE",
+    "size": "51-200",
+    "news": "Helios Growth named agency of record for a DAX-listed beverage brand."
+  },
+  "message": null,
+  "tags": [
+    "size:outside"
+  ]
+}

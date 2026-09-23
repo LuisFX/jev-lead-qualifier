@@ -1,0 +1,26 @@
+{
+  "id": "L065",
+  "source": "website_form",
+  "received_at": "2026-09-20T16:57:00Z",
+  "person": {
+    "name": "Sarah Klein",
+    "title": "Founder",
+    "company": "Kontor Süd Agentur",
+    "location": "Munich, DE"
+  },
+  "company": {
+    "name": "Kontor Süd Agentur",
+    "domain": "kontor-sued.de",
+    "description": "Marketing agency for craft businesses and regional retailers in Bavaria; 10 people.",
+    "location": "Munich, DE",
+    "size": "2-10"
+  },
+  "message": {
+    "text": "We are a 10-person agency in Munich and reporting eats our Fridays. Do you have a price sheet you could send?",
+    "from_name": "Sarah Klein",
+    "from_domain": "kontor-sued.de"
+  },
+  "tags": [
+    "dedupe:near_miss"
+  ]
+}

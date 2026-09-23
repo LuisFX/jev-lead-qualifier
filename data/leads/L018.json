@@ -1,0 +1,25 @@
+{
+  "id": "L018",
+  "source": "instantly_reply",
+  "received_at": "2026-09-09T14:43:00Z",
+  "person": {
+    "name": "Felix Baumann",
+    "title": "Founder",
+    "company": "Baumann Digital",
+    "location": "Stuttgart, DE"
+  },
+  "company": {
+    "name": "Baumann Digital",
+    "domain": "baumann-digital.de",
+    "description": "Performance marketing agency for regional B2B companies; 9 people.",
+    "location": "Stuttgart, DE",
+    "size": "2-10"
+  },
+  "message": {
+    "text": "Not right now — we are in the middle of a rebrand until November. But the follow-up problem you describe is real for us, leads do fall through. Ping me again in December?",
+    "subject": "Re: leads falling through",
+    "from_name": "Felix Baumann",
+    "from_domain": "baumann-digital.de"
+  },
+  "tags": []
+}

@@ -1,0 +1,21 @@
+{
+  "id": "L030",
+  "source": "apollo_export",
+  "received_at": "2026-09-04T16:01:00Z",
+  "person": {
+    "name": "Judith Mahler",
+    "title": "Head of Content Operations",
+    "company": "Wortwerk Content GmbH",
+    "location": "Hamburg, DE"
+  },
+  "company": {
+    "name": "Wortwerk Content GmbH",
+    "domain": "wortwerk-content.de",
+    "description": "Content marketing agency writing blogs, whitepapers and newsletters for B2B clients.",
+    "location": "Hamburg, DE",
+    "size": "11-50",
+    "news": "Wortwerk hires four freelance editors to work through a growing content backlog for its enterprise clients; the team says production, not demand, is the bottleneck."
+  },
+  "message": null,
+  "tags": []
+}

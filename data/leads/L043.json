@@ -1,0 +1,24 @@
+{
+  "id": "L043",
+  "source": "linkedin_dm",
+  "received_at": "2026-09-17T12:29:00Z",
+  "person": {
+    "name": "Emilia Novak",
+    "title": "Co-founder",
+    "company": "Signal Boost Coaching",
+    "location": "Lisbon, PT"
+  },
+  "company": {
+    "name": "Signal Boost Coaching",
+    "domain": "signalboost.co",
+    "description": "Career coaching for people moving into tech; two coaches and a virtual assistant.",
+    "location": "Lisbon, PT",
+    "size": "2-10"
+  },
+  "message": {
+    "text": "Curious: do you also work with coaching businesses? We are two coaches and a VA. Onboarding is a bit messy but manageable for now.",
+    "from_name": "Emilia Novak",
+    "channel": "LinkedIn"
+  },
+  "tags": []
+}

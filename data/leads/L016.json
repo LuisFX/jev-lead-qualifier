@@ -1,0 +1,21 @@
+{
+  "id": "L016",
+  "source": "linkedin_export",
+  "received_at": "2026-09-07T12:29:00Z",
+  "person": {
+    "name": "Marcus Thalberg",
+    "title": "COO",
+    "company": "Thalberg Creative",
+    "location": "Amsterdam, NL",
+    "bio": "COO at Thalberg Creative (22 people, brand and performance). Building the operating system for a freelancer-heavy delivery model. Actively evaluating automation partners this quarter for briefing and handovers."
+  },
+  "company": {
+    "name": "Thalberg Creative",
+    "domain": "thalbergcreative.com",
+    "description": "Brand and performance agency working with a network of freelance specialists.",
+    "location": "Amsterdam, NL",
+    "size": "11-50"
+  },
+  "message": null,
+  "tags": []
+}

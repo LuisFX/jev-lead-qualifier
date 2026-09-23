@@ -1,0 +1,25 @@
+{
+  "id": "L007",
+  "source": "email_reply",
+  "received_at": "2026-09-19T12:29:00Z",
+  "person": {
+    "name": "Jana Kowalczyk",
+    "title": "Founder",
+    "company": "Bloom & Grow Coaching",
+    "location": "Munich, DE"
+  },
+  "company": {
+    "name": "Bloom & Grow Coaching",
+    "domain": "bloomandgrow.de",
+    "description": "Mastermind and group coaching for female founders; cohort launches twice a year.",
+    "location": "Munich, DE",
+    "size": "2-10"
+  },
+  "message": {
+    "text": "Yes please. I have 40 people in my mastermind and a launch in six weeks. The applicant follow-up is me, at midnight, in Gmail — people wait days for a reply and some just give up. I want the whole application, call and onboarding flow automated before the launch. What would it cost and how fast can you start?",
+    "subject": "Re: your note",
+    "from_name": "Jana Kowalczyk",
+    "from_domain": "bloomandgrow.de"
+  },
+  "tags": []
+}

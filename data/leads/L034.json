@@ -1,0 +1,20 @@
+{
+  "id": "L034",
+  "source": "apollo_export",
+  "received_at": "2026-09-08T12:29:00Z",
+  "person": {
+    "name": "Bram Willems",
+    "title": "Founder",
+    "company": "Studio Mondrian",
+    "location": "Eindhoven, NL"
+  },
+  "company": {
+    "name": "Studio Mondrian",
+    "domain": "studiomondrian.nl",
+    "description": "Web design studio for architects and manufacturers; 6 people.",
+    "location": "Eindhoven, NL",
+    "size": "2-10"
+  },
+  "message": null,
+  "tags": []
+}

@@ -1,0 +1,176 @@
+{
+  "accounts": [
+    {
+      "id": "acc_hafenblick",
+      "name": "Hafenblick Digital GmbH",
+      "domain": "hafenblick-digital.de",
+      "status": "customer",
+      "owner": "Lena Berg",
+      "about": "Performance marketing agency in Hamburg, 14 people; reporting automation live since March 2026",
+      "contacts": [
+        {
+          "name": "Jonas Petersen",
+          "title": "Managing Director"
+        }
+      ]
+    },
+    {
+      "id": "acc_kontornord",
+      "name": "Kontor Nord Creative",
+      "domain": "kontornord.de",
+      "status": "customer",
+      "owner": "Lena Berg",
+      "about": "Brand and content agency in Hamburg, 20 people; onboarding automation project running",
+      "contacts": [
+        {
+          "name": "Tim Ahrens",
+          "title": "Founder"
+        }
+      ]
+    },
+    {
+      "id": "acc_brightpath",
+      "name": "Brightpath Coaching Ltd",
+      "domain": "brightpath-coaching.com",
+      "status": "open opportunity",
+      "owner": "Sara Nowak",
+      "about": "Executive coaching business in Leeds, 6 people; proposal for applicant follow-up automation pending",
+      "contacts": [
+        {
+          "name": "James Whitfield",
+          "title": "Founder"
+        }
+      ]
+    },
+    {
+      "id": "acc_marlow",
+      "name": "Studio Marlow",
+      "domain": "studiomarlow.co.uk",
+      "status": "churned",
+      "owner": "Lena Berg",
+      "about": "Design studio in London; reporting pilot paused in 2025 when the team shrank to 5",
+      "contacts": [
+        {
+          "name": "Hugo Marlow",
+          "title": "Founder"
+        }
+      ]
+    },
+    {
+      "id": "acc_nordwind",
+      "name": "Nordwind Media GmbH",
+      "domain": "nordwind-media.de",
+      "status": "customer",
+      "owner": "Jonas Falk",
+      "about": "Video and social agency in Bremen, 12 people; content repurposing automation live",
+      "contacts": [
+        {
+          "name": "Kim Nordwind",
+          "title": "Owner"
+        }
+      ]
+    },
+    {
+      "id": "acc_klarsicht",
+      "name": "Klarsicht PR",
+      "domain": "klarsicht-pr.at",
+      "status": "open opportunity",
+      "owner": "Sara Nowak",
+      "about": "PR boutique in Vienna, 9 people; media monitoring report automation being scoped",
+      "contacts": [
+        {
+          "name": "Eva Lang",
+          "title": "Managing Partner"
+        }
+      ]
+    },
+    {
+      "id": "acc_growthloop",
+      "name": "Growthloop Agency",
+      "domain": "growthloop.io",
+      "status": "customer",
+      "owner": "Jonas Falk",
+      "about": "Performance marketing agency in Berlin, 28 people; lead follow-up and reporting automations live",
+      "contacts": [
+        {
+          "name": "Dana Fischer",
+          "title": "COO"
+        },
+        {
+          "name": "Leon Gruber",
+          "title": "Founder"
+        }
+      ]
+    },
+    {
+      "id": "acc_mindful",
+      "name": "Mindful Momentum Coaching",
+      "domain": "mindfulmomentum.de",
+      "status": "customer",
+      "owner": "Lena Berg",
+      "about": "Mindset coaching business in Cologne, 4 people; onboarding automation live",
+      "contacts": [
+        {
+          "name": "Nadine Roth",
+          "title": "Founder"
+        }
+      ]
+    },
+    {
+      "id": "acc_pixelwerk",
+      "name": "Pixelwerk Studio AG",
+      "domain": "pixelwerk.ch",
+      "status": "open opportunity",
+      "owner": "Sara Nowak",
+      "about": "Web and brand studio in Zurich, 15 people; discovery call done",
+      "contacts": [
+        {
+          "name": "Reto Amsler",
+          "title": "CEO"
+        }
+      ]
+    },
+    {
+      "id": "acc_ostsee",
+      "name": "Ostsee Social",
+      "domain": "ostsee-social.de",
+      "status": "lost",
+      "owner": "Jonas Falk",
+      "about": "Social media agency in Rostock, 6 people; chose an in-house solution in 2025",
+      "contacts": [
+        {
+          "name": "Finn Larsen",
+          "title": "Founder"
+        }
+      ]
+    },
+    {
+      "id": "acc_velvet",
+      "name": "Velvet & Vine Branding",
+      "domain": "velvetandvine.nl",
+      "status": "customer",
+      "owner": "Lena Berg",
+      "about": "Branding studio in Amsterdam, 11 people; reporting automation live",
+      "contacts": [
+        {
+          "name": "Noor de Wit",
+          "title": "Creative Director"
+        }
+      ]
+    },
+    {
+      "id": "acc_bergblick",
+      "name": "Bergblick Consulting",
+      "domain": "bergblick-consulting.at",
+      "status": "customer",
+      "owner": "Jonas Falk",
+      "about": "Business coaching and consulting in Salzburg, 8 people; applicant pipeline automation live",
+      "contacts": [
+        {
+          "name": "Markus Bergblick",
+          "title": "Owner"
+        }
+      ]
+    }
+  ]
+}

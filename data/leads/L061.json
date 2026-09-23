@@ -1,0 +1,25 @@
+{
+  "id": "L061",
+  "source": "email_reply",
+  "received_at": "2026-09-21T12:29:00Z",
+  "person": {
+    "name": "Marie Stein",
+    "title": "Head of Client Services",
+    "company": "Kontor Nord Creative",
+    "location": "Hamburg, DE"
+  },
+  "company": {
+    "name": "Kontor Nord Creative",
+    "domain": "kontornord.de",
+    "description": "Brand and content agency in Hamburg.",
+    "location": "Hamburg, DE",
+    "size": "11-50"
+  },
+  "message": {
+    "text": "We are already working with you on the onboarding automations — my colleague Tim mentioned we should also look at automating the monthly dashboards. Who should I speak to?",
+    "subject": "Dashboards next?",
+    "from_name": "Marie Stein",
+    "from_domain": "kontornord.de"
+  },
+  "tags": []
+}

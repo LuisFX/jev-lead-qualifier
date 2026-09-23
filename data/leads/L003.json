@@ -1,0 +1,26 @@
+{
+  "id": "L003",
+  "source": "linkedin_dm",
+  "received_at": "2026-09-16T16:01:00Z",
+  "person": {
+    "name": "Anneke de Vries",
+    "title": "Founder",
+    "company": "Ritmo Business Coaching",
+    "location": "Utrecht, NL"
+  },
+  "company": {
+    "name": "Ritmo Business Coaching",
+    "domain": "ritmocoaching.nl",
+    "description": "Group and 1:1 business coaching programmes for owners of service businesses.",
+    "location": "Utrecht, NL",
+    "size": "2-10"
+  },
+  "message": {
+    "text": "Hi! I run a business coaching programme with about 90 clients a year and a team of five. Onboarding new clients is completely manual — contracts, intake forms, Slack invites, calendar links — and it is eating my assistant alive. We bill around €45k a month so there is room to invest. Can we set up a call next week?",
+    "from_name": "Anneke de Vries",
+    "channel": "LinkedIn"
+  },
+  "tags": [
+    "revenue:30k_100k"
+  ]
+}

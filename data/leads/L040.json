@@ -1,0 +1,24 @@
+{
+  "id": "L040",
+  "source": "website_form",
+  "received_at": "2026-09-14T09:08:00Z",
+  "person": {
+    "name": "Theo Vermeulen",
+    "title": "Junior Account Manager",
+    "company": "Peak & Pine Agency",
+    "location": "Antwerp, BE"
+  },
+  "company": {
+    "name": "Peak & Pine Agency",
+    "domain": "peakandpine.be",
+    "description": "Digital agency for Belgian retail and food brands; 14 people.",
+    "location": "Antwerp, BE",
+    "size": "11-50"
+  },
+  "message": {
+    "text": "Hi, I am a junior account manager at Peak & Pine. My boss asked me to collect names of automation agencies for a comparison sheet. No need to reply in detail, I am just adding names for now.",
+    "from_name": "Theo Vermeulen",
+    "from_domain": "peakandpine.be"
+  },
+  "tags": []
+}

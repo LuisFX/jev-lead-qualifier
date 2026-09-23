@@ -1,0 +1,21 @@
+{
+  "id": "L063",
+  "source": "linkedin_export",
+  "received_at": "2026-09-06T14:43:00Z",
+  "person": {
+    "name": "Dana Fischer",
+    "title": "COO",
+    "company": "Growthloop Agency",
+    "location": "Berlin, DE",
+    "bio": "COO at Growthloop (performance marketing, 28 people). Operations, finance and tooling."
+  },
+  "company": {
+    "name": "Growthloop Agency",
+    "domain": "growthloop.io",
+    "description": "Performance marketing agency for DTC brands.",
+    "location": "Berlin, DE",
+    "size": "11-50"
+  },
+  "message": null,
+  "tags": []
+}

@@ -1,0 +1,25 @@
+{
+  "id": "L050",
+  "source": "email_reply",
+  "received_at": "2026-09-11T10:15:00Z",
+  "person": {
+    "name": "Dr. Sabine Krüger",
+    "title": "Head of Marketing Operations",
+    "company": "Hansa Versicherungsgruppe",
+    "location": "Hamburg, DE"
+  },
+  "company": {
+    "name": "Hansa Versicherungsgruppe",
+    "domain": "hansa-versicherung.de",
+    "description": "Insurance group with six brands and about 3,000 employees.",
+    "location": "Hamburg, DE",
+    "size": "200+"
+  },
+  "message": {
+    "text": "We are evaluating automation vendors for our group marketing department (3,000 employees, six brands). Please complete the attached supplier questionnaire, confirm your ISO 27001 certification and provide three enterprise references.",
+    "subject": "Supplier questionnaire — marketing automation",
+    "from_name": "Dr. Sabine Krüger",
+    "from_domain": "hansa-versicherung.de"
+  },
+  "tags": []
+}

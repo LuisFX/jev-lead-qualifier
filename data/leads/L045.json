@@ -1,0 +1,21 @@
+{
+  "id": "L045",
+  "source": "linkedin_export",
+  "received_at": "2026-09-19T14:43:00Z",
+  "person": {
+    "name": "Léa Moreau",
+    "title": "Head of Client Services",
+    "company": "Atelier Nord",
+    "location": "Lille, FR",
+    "bio": "Client services at Atelier Nord (brand and digital, 30 people). Ten years on the agency side."
+  },
+  "company": {
+    "name": "Atelier Nord",
+    "domain": "ateliernord.fr",
+    "description": "Brand and digital agency for retail and culture clients.",
+    "location": "Lille, FR",
+    "size": "11-50"
+  },
+  "message": null,
+  "tags": []
+}

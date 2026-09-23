@@ -1,0 +1,20 @@
+{
+  "id": "L031",
+  "source": "apollo_export",
+  "received_at": "2026-09-05T09:08:00Z",
+  "person": {
+    "name": "Verena Stocker",
+    "title": "Founder",
+    "company": "Alpenglow Coaching",
+    "location": "Innsbruck, AT"
+  },
+  "company": {
+    "name": "Alpenglow Coaching",
+    "domain": "alpenglow-coaching.at",
+    "description": "Leadership and career coaching for professionals in the Alpine region; retreats and online programmes.",
+    "location": "Innsbruck, AT",
+    "size": "2-10"
+  },
+  "message": null,
+  "tags": []
+}

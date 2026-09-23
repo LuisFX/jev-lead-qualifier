@@ -1,0 +1,27 @@
+{
+  "id": "L025",
+  "source": "website_form",
+  "received_at": "2026-09-18T12:29:00Z",
+  "person": {
+    "name": "Lotte Jensen",
+    "title": "Founder",
+    "company": "Jensen Digital",
+    "location": "Odense, DK"
+  },
+  "company": {
+    "name": "Jensen Digital",
+    "domain": "jensendigital.dk",
+    "description": "Digital marketing agency for local service businesses.",
+    "location": "Odense, DK",
+    "size": "2-10"
+  },
+  "message": {
+    "text": "We would like to automate our monthly client reports. Six people, about €18k a month in revenue, 11 clients. What does a project like that usually cost?",
+    "from_name": "Lotte Jensen",
+    "from_domain": "jensendigital.dk"
+  },
+  "tags": [
+    "revenue:10k_30k",
+    "demo:revenue_gate"
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "id": "L001",
+  "source": "website_form",
+  "received_at": "2026-09-14T14:47:00Z",
+  "person": {
+    "name": "Mara Lindqvist",
+    "title": "Founder & Managing Director",
+    "company": "Lindqvist & Co Performance",
+    "location": "Hamburg, DE"
+  },
+  "company": {
+    "name": "Lindqvist & Co Performance",
+    "domain": "lindqvist-performance.de",
+    "description": "Paid social and search agency for consumer brands in Germany and Scandinavia.",
+    "location": "Hamburg, DE",
+    "services": [
+      "paid social",
+      "Google Ads",
+      "creative testing"
+    ]
+  },
+  "message": {
+    "text": "Hi — we're drowning in reporting for 14 clients. Every month my team loses close to a week building decks and pulling numbers from Meta, Google and GA4 into slides. Do you do this? Could we talk this week?",
+    "subject": "quick question",
+    "from_name": "Mara Lindqvist",
+    "from_domain": "lindqvist-performance.de"
+  },
+  "tags": [
+    "demo:vague_hot"
+  ]
+}

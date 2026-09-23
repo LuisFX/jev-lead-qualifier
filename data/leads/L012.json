@@ -1,0 +1,24 @@
+{
+  "id": "L012",
+  "source": "linkedin_dm",
+  "received_at": "2026-09-04T16:01:00Z",
+  "person": {
+    "name": "Oliver Bright",
+    "title": "Head of Operations",
+    "company": "Meridian Growth Partners",
+    "location": "London, UK"
+  },
+  "company": {
+    "name": "Meridian Growth Partners",
+    "domain": "meridiangrowth.co.uk",
+    "description": "Growth marketing agency for scale-ups; 40 people across London and Leeds.",
+    "location": "London, UK",
+    "size": "11-50"
+  },
+  "message": {
+    "text": "Interesting profile. We are a 40-person growth agency and our onboarding for new clients is still a 30-tab spreadsheet. Not sure automation is the answer versus hiring a project manager, but happy to hear how you would approach it.",
+    "from_name": "Oliver Bright",
+    "channel": "LinkedIn"
+  },
+  "tags": []
+}

@@ -1,0 +1,23 @@
+{
+  "id": "L046",
+  "source": "apollo_export",
+  "received_at": "2026-09-20T15:50:00Z",
+  "person": {
+    "name": "Erik Bergström",
+    "title": "CEO",
+    "company": "Bergström Kommunikation",
+    "location": "Stockholm, SE"
+  },
+  "company": {
+    "name": "Bergström Kommunikation",
+    "domain": "bergstromkomm.se",
+    "description": "Communications and content agency for public-sector and NGO clients.",
+    "location": "Stockholm, SE",
+    "size": "11-50",
+    "news": "Bergström Kommunikation reports a record year; the CEO says clients now churn less since the agency introduced a weekly reporting cadence."
+  },
+  "message": null,
+  "tags": [
+    "churn"
+  ]
+}

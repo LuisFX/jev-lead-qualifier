@@ -1,0 +1,24 @@
+{
+  "id": "L011",
+  "source": "website_form",
+  "received_at": "2026-09-03T15:54:00Z",
+  "person": {
+    "name": "Nina Falk",
+    "title": "Founder",
+    "company": "Falk Social",
+    "location": "Vienna, AT"
+  },
+  "company": {
+    "name": "Falk Social",
+    "domain": "falksocial.at",
+    "description": "Social media agency for restaurants, hotels and lifestyle brands.",
+    "location": "Vienna, AT",
+    "size": "2-10"
+  },
+  "message": {
+    "text": "We are a 6-person social media agency in Vienna. Curious what kind of automations you have built for agencies like ours — reporting takes ages every month. No rush, just exploring.",
+    "from_name": "Nina Falk",
+    "from_domain": "falksocial.at"
+  },
+  "tags": []
+}

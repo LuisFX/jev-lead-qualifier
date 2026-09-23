@@ -1,0 +1,20 @@
+{
+  "id": "L051",
+  "source": "website_form",
+  "received_at": "2026-09-12T11:22:00Z",
+  "person": {
+    "name": "Kevin Moser",
+    "title": "Coach (starting out)",
+    "company": "Kevin Moser Coaching",
+    "location": "Bochum, DE"
+  },
+  "company": null,
+  "message": {
+    "text": "Hi, I am just starting my coaching business — no clients yet but I want to set everything up right from day one. Budget is tight, is there a starter package or a discount for beginners?",
+    "from_name": "Kevin Moser",
+    "from_domain": "gmail.com"
+  },
+  "tags": [
+    "demo:too_small"
+  ]
+}

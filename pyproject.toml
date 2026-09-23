@@ -1,0 +1,30 @@
+[project]
+name = "first-read"
+version = "0.1.0"
+description = "First Read — inbound lead qualification for an agency's client. One Jev (TypeSafe System One, jev-1.13.0) request per lead answers ~30 atomic questions; code computes ICP fit, intent, tier, dedupe and route."
+requires-python = ">=3.13"
+dependencies = [
+    "fastapi>=0.115",
+    "uvicorn[standard]>=0.32",
+    "httpx>=0.27",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3",
+    "playwright>=1.47",
+]
+
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[tool.hatch.build.targets.wheel]
+packages = ["leadqualifier"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+markers = [
+    "integration: hits the real TypeSafe API (needs TYPESAFE_API_KEY / JEV_API_KEY)",
+]
+addopts = "-q"

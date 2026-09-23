@@ -1,0 +1,21 @@
+{
+  "id": "L037",
+  "source": "linkedin_export",
+  "received_at": "2026-09-11T15:50:00Z",
+  "person": {
+    "name": "Ines Castellano",
+    "title": "Head of Marketing",
+    "company": "Lumen Coaching Academy",
+    "location": "Berlin, DE",
+    "bio": "Marketing at Lumen Coaching Academy (cohort-based leadership programmes, about 12 staff). Growing our newsletter to 50k subscribers."
+  },
+  "company": {
+    "name": "Lumen Coaching Academy",
+    "domain": "lumenacademy.de",
+    "description": "Cohort-based leadership coaching programmes for managers.",
+    "location": "Berlin, DE",
+    "size": "11-50"
+  },
+  "message": null,
+  "tags": []
+}

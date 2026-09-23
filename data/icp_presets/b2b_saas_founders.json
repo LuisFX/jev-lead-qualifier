@@ -1,0 +1,54 @@
+{
+  "id": "b2b_saas_founders",
+  "name": "B2B SaaS founders",
+  "client": "Lanternfield Automation",
+  "summary": "Lanternfield Automation builds AI automations for early-stage B2B software companies: support triage, onboarding flows, CRM hygiene, investor and board reporting. Buyers are founders and first ops hires at companies with paying customers and a small team.",
+  "industries": {
+    "b2b_saas": "A software-as-a-service company selling to businesses on subscription",
+    "developer_tools": "APIs, infrastructure, developer platforms or open-source companies with a commercial offering",
+    "vertical_software": "Software built for one industry (legal tech, prop tech, health tech, logistics software)",
+    "marketplace_or_platform": "A two-sided marketplace or platform business with a B2B side"
+  },
+  "size_bands": ["solo", "2-10", "11-50", "51-200", "200+"],
+  "target_size_bands": ["2-10", "11-50"],
+  "revenue_bands": ["under_10k", "10k_30k", "30k_100k", "over_100k"],
+  "revenue_band_labels": {
+    "under_10k": "under EUR 10k MRR",
+    "10k_30k": "EUR 10k to 30k MRR",
+    "30k_100k": "EUR 30k to 100k MRR",
+    "over_100k": "over EUR 100k MRR"
+  },
+  "min_revenue_band": "10k_30k",
+  "maturity_fit": [0.1, 0.5, 1.0, 1.0, 0.3],
+  "geography": "Europe and North America; remote teams anywhere",
+  "personas": {
+    "founder_ceo": {"description": "Founder, co-founder or CEO", "weight": 1.0},
+    "cto_or_head_of_engineering": {"description": "CTO, VP engineering or technical co-founder", "weight": 0.7},
+    "head_of_operations": {"description": "COO, chief of staff, head of operations or first ops hire", "weight": 0.9},
+    "head_of_customer_success": {"description": "Head of customer success, support lead or onboarding manager", "weight": 0.7}
+  },
+  "pains": {
+    "support_overload": {"description": "The support inbox or chat is overwhelming; founders or engineers answer tickets themselves", "weight": 1.0},
+    "manual_onboarding": {"description": "New customers are onboarded by hand: setup calls, data imports, configuration done manually", "weight": 0.9},
+    "crm_hygiene": {"description": "CRM data is stale or inconsistent; pipeline reviews and forecasts are unreliable", "weight": 0.7},
+    "investor_reporting": {"description": "Investor updates, board decks and metrics reporting take days each month", "weight": 0.7},
+    "lead_followup": {"description": "Trials, demo requests or inbound leads are followed up late or inconsistently", "weight": 0.9}
+  },
+  "disqualifiers": {
+    "pre_product": "No product yet, pre-launch idea stage, or explicitly no paying customers",
+    "enterprise": "A large corporation with hundreds or thousands of employees",
+    "competitor": "The company builds AI automation, AI agents or automation consulting for other companies",
+    "student_or_academic": "A student, researcher, journalist or job seeker asking for an interview, thesis input or a job"
+  },
+  "intent_signals": ["asks for a call or proposal", "states a timeline", "mentions a budget", "describes a concrete process", "recent funding or hiring news"],
+  "weights": {"industry": 0.35, "maturity": 0.2, "persona": 0.2, "pains": 0.25},
+  "intent_weights": {"purchase_intent": 0.5, "asks_for_meeting": 0.2, "budget_signal": 0.1, "urgency": 0.1, "timeline": 0.1},
+  "thresholds": {"fit_hot": 0.62, "fit_warm": 0.42, "intent_hot": 0.6, "intent_warm": 0.25, "disqualifier_p": 0.7, "spam_p": 0.8, "dedupe_p": 0.6, "confidence_floor": 0.55, "pain_p": 0.6, "evidence_p": 0.35},
+  "routes": {
+    "hot": {"label": "Founder call", "owner": "Elena Marquardt (founder / closer)", "action": "Offer two 30-minute slots this week"},
+    "warm": {"label": "SDR sequence A", "owner": "Sara (SDR)", "action": "3-step sequence with the SaaS case study"},
+    "nurture": {"label": "Nurture track", "owner": "Marketing", "action": "Founder newsletter and the SaaS ops content track"},
+    "disqualify": {"label": "Polite decline", "owner": "Nobody (draft only)", "action": "Decline template drafted; never auto-sent"},
+    "existing": {"label": "Account owner", "owner": "CRM owner", "action": "Hand to the account owner"}
+  }
+}

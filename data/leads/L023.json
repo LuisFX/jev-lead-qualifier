@@ -1,0 +1,24 @@
+{
+  "id": "L023",
+  "source": "website_form",
+  "received_at": "2026-09-16T10:15:00Z",
+  "person": {
+    "name": "Amira Haddad",
+    "title": "Operations Lead",
+    "company": "Sundial Studio",
+    "location": "Rotterdam, NL"
+  },
+  "company": {
+    "name": "Sundial Studio",
+    "domain": "sundialstudio.nl",
+    "description": "Design and development studio for SaaS companies; 9 people.",
+    "location": "Rotterdam, NL",
+    "size": "2-10"
+  },
+  "message": {
+    "text": "Our onboarding is chaos — every new client gets a slightly different kickoff, and nobody knows who owns what. I would want my founder in the conversation before we commit to anything. Could you send me how you would approach a project like this?",
+    "from_name": "Amira Haddad",
+    "from_domain": "sundialstudio.nl"
+  },
+  "tags": []
+}

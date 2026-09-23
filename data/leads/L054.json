@@ -1,0 +1,19 @@
+{
+  "id": "L054",
+  "source": "email_reply",
+  "received_at": "2026-09-15T14:43:00Z",
+  "person": {
+    "name": "Dario Costa",
+    "title": "Automation Engineer",
+    "company": "Freelance",
+    "location": "Porto, PT"
+  },
+  "company": null,
+  "message": {
+    "text": "Hi! I am an n8n and Make specialist with three years of agency experience and I am looking for my next role. Are you hiring? CV attached, happy to do a trial project.",
+    "subject": "Automation engineer — open to work",
+    "from_name": "Dario Costa",
+    "from_domain": "gmail.com"
+  },
+  "tags": []
+}

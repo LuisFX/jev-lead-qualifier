@@ -1,0 +1,23 @@
+{
+  "id": "L033",
+  "source": "apollo_export",
+  "received_at": "2026-09-07T11:22:00Z",
+  "person": {
+    "name": "Aino Virtanen",
+    "title": "COO",
+    "company": "Pinewood Performance",
+    "location": "Helsinki, FI"
+  },
+  "company": {
+    "name": "Pinewood Performance",
+    "domain": "pinewoodperformance.fi",
+    "description": "Performance marketing agency for Nordic e-commerce and SaaS.",
+    "location": "Helsinki, FI",
+    "size": "11-50",
+    "news": "In an interview, Pinewood's COO said monthly client reporting now takes a fifth of team time and that two clients left over late reports; the agency is reviewing tooling."
+  },
+  "message": null,
+  "tags": [
+    "churn"
+  ]
+}

@@ -1,0 +1,27 @@
+{
+  "id": "L006",
+  "source": "website_form",
+  "received_at": "2026-09-18T11:22:00Z",
+  "person": {
+    "name": "Lukas Brandstätter",
+    "title": "Founder",
+    "company": "Kraftwerk Social",
+    "location": "Graz, AT"
+  },
+  "company": {
+    "name": "Kraftwerk Social",
+    "domain": "kraftwerk-social.at",
+    "description": "Paid social agency for regional retail and tourism businesses in Austria.",
+    "location": "Graz, AT",
+    "size": "2-10"
+  },
+  "message": {
+    "text": "Hi, we are a paid social agency, 8 people, roughly €22k per month in revenue. Leads from our website and Instagram DMs go unanswered for days because everyone is busy in delivery. I have been quoted €12k by another shop and want to compare. Can we talk this month?",
+    "from_name": "Lukas Brandstätter",
+    "from_domain": "kraftwerk-social.at"
+  },
+  "tags": [
+    "revenue:10k_30k",
+    "demo:revenue_gate"
+  ]
+}

@@ -1,0 +1,25 @@
+{
+  "id": "L055",
+  "source": "email_reply",
+  "received_at": "2026-09-16T15:50:00Z",
+  "person": {
+    "name": "Chloe Winters",
+    "title": "Business Development",
+    "company": "Podcast Guest Co",
+    "location": "London, UK"
+  },
+  "company": {
+    "name": "Podcast Guest Co",
+    "domain": "podcastguest.co",
+    "description": "Paid guest placements on marketing podcasts.",
+    "location": "London, UK",
+    "size": "2-10"
+  },
+  "message": {
+    "text": "I would love to feature you on our network of marketing podcasts — paid placement from £1,200 per episode, great for lead generation. Shall I send the media kit?",
+    "subject": "Feature you on 12 marketing podcasts",
+    "from_name": "Chloe Winters",
+    "from_domain": "podcastguest.co"
+  },
+  "tags": []
+}

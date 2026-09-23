@@ -1,0 +1,30 @@
+{
+  "id": "L002",
+  "source": "email_reply",
+  "received_at": "2026-09-15T15:54:00Z",
+  "person": {
+    "name": "Tobias Reinhardt",
+    "title": "COO",
+    "company": "Funnelwerk GmbH",
+    "location": "Berlin, DE"
+  },
+  "company": {
+    "name": "Funnelwerk GmbH",
+    "domain": "funnelwerk.de",
+    "description": "Growth marketing agency running paid acquisition and CRM for B2B software companies. 20 people.",
+    "location": "Berlin, DE",
+    "size": "11-50",
+    "services": [
+      "paid acquisition",
+      "HubSpot",
+      "landing pages"
+    ]
+  },
+  "message": {
+    "text": "Thanks for the follow-up. Yes, still relevant: our inbound leads sit for two days before anyone answers, and by then half of them have signed with someone else. We have budget set aside for Q4 and I'd like to see a proposal before the end of the month. When can we do a call?",
+    "subject": "Re: lead follow-up automation",
+    "from_name": "Tobias Reinhardt",
+    "from_domain": "funnelwerk.de"
+  },
+  "tags": []
+}

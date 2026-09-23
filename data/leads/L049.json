@@ -1,0 +1,24 @@
+{
+  "id": "L049",
+  "source": "linkedin_dm",
+  "received_at": "2026-09-10T10:11:00Z",
+  "person": {
+    "name": "Nico Berger",
+    "title": "Founder",
+    "company": "Automata Labs",
+    "location": "Berlin, DE"
+  },
+  "company": {
+    "name": "Automata Labs",
+    "domain": "automatalabs.de",
+    "description": "We build AI automations and agents for agencies and SMEs, mostly on Make, n8n and OpenAI.",
+    "location": "Berlin, DE",
+    "size": "2-10"
+  },
+  "message": {
+    "text": "Hey — we also build AI automations for agencies, mostly Make plus OpenAI. Would you be open to white-labelling some of our workflows or teaming up on bigger projects? Always good to know other shops in the space.",
+    "from_name": "Nico Berger",
+    "channel": "LinkedIn"
+  },
+  "tags": []
+}

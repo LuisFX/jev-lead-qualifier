@@ -1,0 +1,20 @@
+{
+  "id": "L048",
+  "source": "website_form",
+  "received_at": "2026-09-09T09:04:00Z",
+  "person": {
+    "name": "Lea Schmitt",
+    "title": "Master's student",
+    "company": "University of Mannheim",
+    "location": "Mannheim, DE"
+  },
+  "company": null,
+  "message": {
+    "text": "Hello! I am a master's student writing my thesis on AI adoption in marketing agencies. Would you have 20 minutes for an interview about how you sell automation projects? I can send the questions in advance. Thank you so much!",
+    "from_name": "Lea Schmitt",
+    "from_domain": "students.uni-mannheim.de"
+  },
+  "tags": [
+    "demo:student"
+  ]
+}

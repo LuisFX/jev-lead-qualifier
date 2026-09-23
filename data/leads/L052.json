@@ -1,0 +1,18 @@
+{
+  "id": "L052",
+  "source": "email_reply",
+  "received_at": "2026-09-13T12:29:00Z",
+  "person": {
+    "name": "Rahul",
+    "title": "SEO Expert",
+    "company": "Top Rank SEO Services"
+  },
+  "company": null,
+  "message": {
+    "text": "Dear Sir/Madam, I noticed your website is not ranking on Google first page. We offer guaranteed SEO at $99 per month with 500 backlinks. Reply YES for a free audit. To unsubscribe click here.",
+    "subject": "Your website ranking",
+    "from_name": "Rahul",
+    "from_domain": "toprankseo-services.biz"
+  },
+  "tags": []
+}

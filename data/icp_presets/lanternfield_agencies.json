@@ -1,0 +1,71 @@
+{
+  "id": "lanternfield_agencies",
+  "name": "Marketing agencies & coaches",
+  "client": "Lanternfield Automation",
+  "summary": "Lanternfield Automation implements custom AI automations for small marketing agencies and coaching businesses in the DACH region and English-speaking Europe: client reporting, lead follow-up, onboarding, content operations. Retainers start at about EUR 3,000 per month, so the buyer needs steady client revenue.",
+  "industries": {
+    "marketing_agency": "A marketing, performance, paid-social, SEO, content or social-media agency that runs campaigns for several client accounts",
+    "coaching_business": "A coach, consultant or online-course business selling programmes to clients or cohorts (business, fitness, mindset, career coaching)",
+    "creative_studio": "A design, branding, video or web studio delivering creative projects for clients",
+    "agency_adjacent_service": "A service business with recurring client accounts that behaves like an agency: PR firms, recruiting boutiques, fractional-CMO collectives, lead-gen shops"
+  },
+  "size_bands": ["solo", "2-10", "11-50", "51-200", "200+"],
+  "target_size_bands": ["2-10", "11-50"],
+  "revenue_bands": ["under_10k", "10k_30k", "30k_100k", "over_100k"],
+  "revenue_band_labels": {
+    "under_10k": "under EUR 10k per month (under ~EUR 120k a year)",
+    "10k_30k": "EUR 10k to 30k per month (~EUR 120k to 360k a year)",
+    "30k_100k": "EUR 30k to 100k per month (~EUR 360k to 1.2M a year)",
+    "over_100k": "over EUR 100k per month (over ~EUR 1.2M a year)"
+  },
+  "min_revenue_band": "10k_30k",
+  "maturity_fit": [0.05, 0.4, 1.0, 1.0, 0.35],
+  "geography": "Germany, Austria, Switzerland, the Netherlands, the Nordics, the UK and Ireland; remote-first teams anywhere in Europe are fine",
+  "personas": {
+    "founder_owner": {"description": "Founder, owner, CEO or managing director of the agency or coaching business", "weight": 1.0},
+    "head_of_operations": {"description": "COO, head of operations, operations manager or chief of staff who owns internal processes and tooling", "weight": 0.9},
+    "head_of_delivery": {"description": "Head of client services, account director, delivery lead or head of client success who owns client work and reporting", "weight": 0.8},
+    "marketing_lead": {"description": "Head of marketing, growth lead or marketing manager inside the company", "weight": 0.5}
+  },
+  "pains": {
+    "manual_reporting": {"description": "Building client reports, dashboards or monthly decks by hand; time lost pulling numbers together for clients", "weight": 1.0},
+    "scaling_with_freelancers": {"description": "Delivery depends on freelancers or a stretched team; quality or capacity breaks when more clients come in; briefing and handovers eat time", "weight": 0.9},
+    "lead_followup": {"description": "Inbound leads or replies are answered late or not at all; follow-up, qualification or nurturing falls through the cracks", "weight": 0.9},
+    "onboarding_chaos": {"description": "New clients or members are onboarded manually: forms, contracts, kick-off documents, account setup done by hand and inconsistently", "weight": 0.8},
+    "content_bottleneck": {"description": "Producing, repurposing or scheduling content for clients or the business itself is the bottleneck", "weight": 0.7}
+  },
+  "disqualifiers": {
+    "too_small_or_pre_revenue": "The company is a hobby, side project, pre-revenue idea, or explicitly says it has no or very few paying clients or a very tight budget",
+    "enterprise": "A large corporation or enterprise (hundreds or thousands of employees, corporate group, listed company, public sector)",
+    "competitor": "The company itself builds or sells AI automation, AI agents, automation consulting or no-code implementation services to agencies or SMEs",
+    "student_or_academic": "The sender is a student, researcher, journalist or job seeker asking for an interview, thesis input, internship, or a job"
+  },
+  "intent_signals": [
+    "asks for a call, demo or proposal",
+    "states a timeline (this month, this quarter, before a launch)",
+    "mentions a budget or an approved spend",
+    "describes a concrete process they want automated",
+    "recent news: new funding, hiring, new clients, expansion"
+  ],
+  "weights": {"industry": 0.35, "maturity": 0.2, "persona": 0.2, "pains": 0.25},
+  "intent_weights": {"purchase_intent": 0.5, "asks_for_meeting": 0.2, "budget_signal": 0.1, "urgency": 0.1, "timeline": 0.1},
+  "thresholds": {
+    "fit_hot": 0.62,
+    "fit_warm": 0.42,
+    "intent_hot": 0.6,
+    "intent_warm": 0.25,
+    "disqualifier_p": 0.7,
+    "spam_p": 0.8,
+    "dedupe_p": 0.6,
+    "confidence_floor": 0.55,
+    "pain_p": 0.6,
+    "evidence_p": 0.35
+  },
+  "routes": {
+    "hot": {"label": "Founder call", "owner": "Elena Marquardt (founder / closer)", "action": "Offer two 30-minute slots this week; founder takes the call"},
+    "warm": {"label": "SDR sequence A", "owner": "Sara (SDR)", "action": "Personalised 3-step sequence with the matching case study; goal: qualifying call"},
+    "nurture": {"label": "Nurture track", "owner": "Marketing", "action": "Newsletter plus the content track for their industry; re-score on the next reply"},
+    "disqualify": {"label": "Polite decline", "owner": "Nobody (draft only)", "action": "Decline template drafted for a human to glance at; never auto-sent"},
+    "existing": {"label": "Account owner", "owner": "CRM owner", "action": "Hand to the account owner with the message attached; no new outreach"}
+  }
+}

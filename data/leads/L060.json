@@ -1,0 +1,26 @@
+{
+  "id": "L060",
+  "source": "website_form",
+  "received_at": "2026-09-20T11:22:00Z",
+  "person": {
+    "name": "Jonas Petersen",
+    "title": "Managing Director",
+    "company": "Hafenblick Digital",
+    "location": "Hamburg, DE"
+  },
+  "company": {
+    "name": "Hafenblick Digital",
+    "domain": "hafenblick-digital.de",
+    "description": "Performance marketing agency in Hamburg; 15 clients.",
+    "location": "Hamburg, DE",
+    "size": "11-50"
+  },
+  "message": {
+    "text": "Hi again — since the reporting automation went live we would like to look at lead follow-up too. Same team, 15 clients now. Can Lena or you call me this week?",
+    "from_name": "Jonas Petersen",
+    "from_domain": "hafenblick-digital.de"
+  },
+  "tags": [
+    "demo:duplicate"
+  ]
+}

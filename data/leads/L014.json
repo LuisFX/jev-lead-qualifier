@@ -1,0 +1,26 @@
+{
+  "id": "L014",
+  "source": "apollo_export",
+  "received_at": "2026-09-02T10:15:00Z",
+  "person": {
+    "name": "Julian Nacht",
+    "title": "Managing Partner",
+    "company": "Studio Nachtblau",
+    "location": "Leipzig, DE"
+  },
+  "company": {
+    "name": "Studio Nachtblau",
+    "domain": "nachtblau.de",
+    "description": "Branding and web studio for cultural institutions and mid-sized companies.",
+    "location": "Leipzig, DE",
+    "size": "11-50",
+    "services": [
+      "brand identity",
+      "web design",
+      "Webflow development"
+    ],
+    "news": "Studio Nachtblau announced three new retainer clients and is hiring two account managers (September 2026)."
+  },
+  "message": null,
+  "tags": []
+}

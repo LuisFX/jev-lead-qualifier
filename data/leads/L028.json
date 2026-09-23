@@ -1,0 +1,26 @@
+{
+  "id": "L028",
+  "source": "apollo_export",
+  "received_at": "2026-09-02T15:50:00Z",
+  "person": {
+    "name": "Tim Klarwasser",
+    "title": "Managing Director",
+    "company": "Klarwasser Digital",
+    "location": "Düsseldorf, DE"
+  },
+  "company": {
+    "name": "Klarwasser Digital",
+    "domain": "klarwasser-digital.de",
+    "description": "Performance marketing agency for e-commerce brands.",
+    "location": "Düsseldorf, DE",
+    "size": "11-50",
+    "services": [
+      "paid social",
+      "Amazon Ads",
+      "CRO"
+    ],
+    "news": "Klarwasser Digital wins two DACH e-commerce accounts; team grows to 24 (August 2026)."
+  },
+  "message": null,
+  "tags": []
+}

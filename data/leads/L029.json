@@ -1,0 +1,21 @@
+{
+  "id": "L029",
+  "source": "apollo_export",
+  "received_at": "2026-09-03T16:57:00Z",
+  "person": {
+    "name": "Amy Cole",
+    "title": "Founder",
+    "company": "Seaside Social",
+    "location": "Brighton, UK"
+  },
+  "company": {
+    "name": "Seaside Social",
+    "domain": "seaside-social.co.uk",
+    "description": "Social media agency for hospitality and leisure brands on the south coast.",
+    "location": "Brighton, UK",
+    "size": "2-10",
+    "news": "Seaside Social launches a TikTok-first offer for hospitality brands."
+  },
+  "message": null,
+  "tags": []
+}

@@ -1,0 +1,21 @@
+{
+  "id": "L056",
+  "source": "apollo_export",
+  "received_at": "2026-09-17T16:57:00Z",
+  "person": {
+    "name": "Marco Lehmann",
+    "title": "Head of Digital Marketing",
+    "company": "Rheinland Retail Group",
+    "location": "Cologne, DE"
+  },
+  "company": {
+    "name": "Rheinland Retail Group",
+    "domain": "rheinland-retail.de",
+    "description": "Retail group with 4,500 employees, 300 stores and twelve regional marketing teams.",
+    "location": "Cologne, DE",
+    "size": "200+",
+    "news": "Rheinland Retail Group consolidates its twelve regional marketing teams into one central unit."
+  },
+  "message": null,
+  "tags": []
+}

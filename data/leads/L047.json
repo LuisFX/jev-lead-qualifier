@@ -1,0 +1,27 @@
+{
+  "id": "L047",
+  "source": "email_reply",
+  "received_at": "2026-09-08T16:57:00Z",
+  "person": {
+    "name": "Jordan Reyes",
+    "title": "VP Partnerships",
+    "company": "ScaleSignal",
+    "location": "Austin, TX, USA"
+  },
+  "company": {
+    "name": "ScaleSignal",
+    "domain": "scalesignal.io",
+    "description": "AI SDR platform for agencies: automated outbound sequences and lead scoring.",
+    "location": "Austin, TX, USA",
+    "size": "51-200"
+  },
+  "message": {
+    "text": "Hi Lanternfield team, loved what you are building. ScaleSignal is the AI SDR platform trusted by 400+ agencies — we would love to explore a partnership where your clients get 20% off and you earn referral revenue on every seat. Can I grab 15 minutes this week?",
+    "subject": "Partnership: ScaleSignal x Lanternfield",
+    "from_name": "Jordan Reyes",
+    "from_domain": "scalesignal.io"
+  },
+  "tags": [
+    "demo:vendor"
+  ]
+}

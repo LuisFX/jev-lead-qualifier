@@ -1,0 +1,26 @@
+{
+  "id": "L017",
+  "source": "website_form",
+  "received_at": "2026-09-08T13:36:00Z",
+  "person": {
+    "name": "Hannah Ruiz",
+    "title": "Account Director",
+    "company": "Ruiz & Partners",
+    "location": "Barcelona, ES"
+  },
+  "company": {
+    "name": "Ruiz & Partners",
+    "domain": "ruizpartners.es",
+    "description": "Digital marketing agency for tourism and hospitality brands in Spain.",
+    "location": "Barcelona, ES",
+    "size": "11-50"
+  },
+  "message": {
+    "text": "Hola! We are a 12-person agency in Barcelona. Our client reporting is a nightmare every month — could you share your pricing?",
+    "from_name": "Hannah Ruiz",
+    "from_domain": "ruizpartners.es"
+  },
+  "tags": [
+    "geo:outside"
+  ]
+}

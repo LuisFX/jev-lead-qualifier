@@ -1,0 +1,21 @@
+{
+  "id": "L015",
+  "source": "linkedin_export",
+  "received_at": "2026-09-06T11:22:00Z",
+  "person": {
+    "name": "Katharina Vogel",
+    "title": "Founder & CEO",
+    "company": "Vogel Kommunikation",
+    "location": "Frankfurt, DE",
+    "bio": "Founder of Vogel Kommunikation, a 14-person PR and content agency for B2B tech companies. Currently looking for partners to automate our media monitoring reports and monthly client updates — DM me if that is you. Previously Edelman and Fink & Fuchs."
+  },
+  "company": {
+    "name": "Vogel Kommunikation",
+    "domain": "vogel-kommunikation.de",
+    "description": "PR and content agency for B2B technology companies.",
+    "location": "Frankfurt, DE",
+    "size": "11-50"
+  },
+  "message": null,
+  "tags": []
+}

@@ -1,0 +1,314 @@
+{
+  "icp": "lanternfield_agencies",
+  "leads": {
+    "L001": {
+      "tier": "hot",
+      "persona": "founder_owner",
+      "primary_pain": "manual_reporting",
+      "note": "Vague but hot: no form fields filled, intent and pain live in the sentences"
+    },
+    "L002": {
+      "tier": "hot",
+      "persona": "head_of_operations",
+      "primary_pain": "lead_followup"
+    },
+    "L003": {
+      "tier": "hot",
+      "persona": "founder_owner",
+      "primary_pain": "onboarding_chaos"
+    },
+    "L004": {
+      "tier": "hot",
+      "persona": "founder_owner",
+      "primary_pain": "scaling_with_freelancers"
+    },
+    "L005": {
+      "tier": "hot",
+      "persona": "head_of_delivery",
+      "primary_pain": "manual_reporting"
+    },
+    "L006": {
+      "tier": "hot",
+      "persona": "founder_owner",
+      "primary_pain": "lead_followup",
+      "note": "States €22k/month: flips to disqualify when the minimum revenue band is raised to 30k"
+    },
+    "L007": {
+      "tier": "hot",
+      "persona": "founder_owner",
+      "primary_pain": "lead_followup"
+    },
+    "L008": {
+      "tier": "hot",
+      "persona": "head_of_operations",
+      "primary_pain": "content_bottleneck"
+    },
+    "L009": {
+      "tier": "hot",
+      "persona": "founder_owner",
+      "primary_pain": "manual_reporting"
+    },
+    "L010": {
+      "tier": "hot",
+      "persona": "founder_owner",
+      "primary_pain": "manual_reporting"
+    },
+    "L011": {
+      "tier": "warm",
+      "persona": "founder_owner",
+      "primary_pain": "manual_reporting"
+    },
+    "L012": {
+      "tier": "warm",
+      "persona": "head_of_operations",
+      "primary_pain": "onboarding_chaos"
+    },
+    "L013": {
+      "tier": "warm",
+      "persona": "marketing_lead",
+      "primary_pain": "lead_followup"
+    },
+    "L014": {
+      "tier": "nurture",
+      "persona": "founder_owner",
+      "primary_pain": null
+    },
+    "L015": {
+      "tier": "warm",
+      "persona": "founder_owner",
+      "primary_pain": "manual_reporting"
+    },
+    "L016": {
+      "tier": "warm",
+      "persona": "head_of_operations",
+      "primary_pain": "scaling_with_freelancers"
+    },
+    "L017": {
+      "tier": "warm",
+      "persona": "head_of_delivery",
+      "primary_pain": "manual_reporting"
+    },
+    "L018": {
+      "tier": "nurture",
+      "persona": "founder_owner",
+      "primary_pain": "lead_followup"
+    },
+    "L019": {
+      "tier": "warm",
+      "persona": "marketing_lead",
+      "primary_pain": "manual_reporting"
+    },
+    "L020": {
+      "tier": "warm",
+      "persona": "founder_owner",
+      "primary_pain": "lead_followup"
+    },
+    "L021": {
+      "tier": "warm",
+      "persona": "founder_owner",
+      "primary_pain": "content_bottleneck"
+    },
+    "L022": {
+      "tier": "warm",
+      "persona": "head_of_delivery",
+      "primary_pain": "scaling_with_freelancers"
+    },
+    "L023": {
+      "tier": "warm",
+      "persona": "head_of_operations",
+      "primary_pain": "onboarding_chaos"
+    },
+    "L024": {
+      "tier": "warm",
+      "persona": "founder_owner",
+      "primary_pain": "scaling_with_freelancers"
+    },
+    "L025": {
+      "tier": "warm",
+      "persona": "founder_owner",
+      "primary_pain": "manual_reporting"
+    },
+    "L026": {
+      "tier": "warm",
+      "persona": "founder_owner",
+      "primary_pain": "lead_followup"
+    },
+    "L027": {
+      "tier": "nurture",
+      "persona": "founder_owner",
+      "primary_pain": null
+    },
+    "L028": {
+      "tier": "nurture",
+      "persona": "founder_owner",
+      "primary_pain": null
+    },
+    "L029": {
+      "tier": "nurture",
+      "persona": "founder_owner",
+      "primary_pain": null
+    },
+    "L030": {
+      "tier": "nurture",
+      "persona": "head_of_operations",
+      "primary_pain": "content_bottleneck"
+    },
+    "L031": {
+      "tier": "nurture",
+      "persona": "founder_owner",
+      "primary_pain": null
+    },
+    "L032": {
+      "tier": "nurture",
+      "persona": "founder_owner",
+      "primary_pain": null
+    },
+    "L033": {
+      "tier": "nurture",
+      "persona": "head_of_operations",
+      "primary_pain": "manual_reporting"
+    },
+    "L034": {
+      "tier": "nurture",
+      "persona": "founder_owner",
+      "primary_pain": null
+    },
+    "L035": {
+      "tier": "nurture",
+      "persona": "marketing_lead",
+      "primary_pain": null
+    },
+    "L036": {
+      "tier": "nurture",
+      "persona": "head_of_delivery",
+      "primary_pain": null
+    },
+    "L037": {
+      "tier": "nurture",
+      "persona": "marketing_lead",
+      "primary_pain": null
+    },
+    "L038": {
+      "tier": "nurture",
+      "persona": "founder_owner",
+      "primary_pain": null
+    },
+    "L039": {
+      "tier": "nurture",
+      "persona": "head_of_operations",
+      "primary_pain": "onboarding_chaos"
+    },
+    "L040": {
+      "tier": "nurture",
+      "persona": "other",
+      "primary_pain": null
+    },
+    "L041": {
+      "tier": "nurture",
+      "persona": "founder_owner",
+      "primary_pain": null
+    },
+    "L042": {
+      "tier": "nurture",
+      "persona": "founder_owner",
+      "primary_pain": null
+    },
+    "L043": {
+      "tier": "nurture",
+      "persona": "founder_owner"
+    },
+    "L044": {
+      "tier": "nurture",
+      "persona": "founder_owner",
+      "primary_pain": null
+    },
+    "L045": {
+      "tier": "nurture",
+      "persona": "head_of_delivery",
+      "primary_pain": null
+    },
+    "L046": {
+      "tier": "nurture",
+      "persona": "founder_owner",
+      "primary_pain": null
+    },
+    "L047": {
+      "tier": "disqualify",
+      "note": "Polished vendor pitch: also reads as a competitor and is outside the region"
+    },
+    "L048": {
+      "tier": "disqualify",
+      "note": "Student asking for a thesis interview"
+    },
+    "L049": {
+      "tier": "disqualify",
+      "note": "Competitor proposing white-labelling"
+    },
+    "L050": {
+      "tier": "disqualify",
+      "note": "Enterprise procurement"
+    },
+    "L051": {
+      "tier": "disqualify",
+      "note": "Pre-revenue coach with a tight budget"
+    },
+    "L052": {
+      "tier": "disqualify",
+      "note": "SEO spam"
+    },
+    "L053": {
+      "tier": "disqualify",
+      "note": "Solo freelancer at €6k/month: below the minimum revenue band"
+    },
+    "L054": {
+      "tier": "disqualify",
+      "note": "Job seeker"
+    },
+    "L055": {
+      "tier": "disqualify",
+      "note": "Paid podcast placement pitch"
+    },
+    "L056": {
+      "tier": "disqualify",
+      "note": "Enterprise retail group from an export"
+    },
+    "L057": {
+      "tier": "disqualify",
+      "note": "Phishing: asks for payment details"
+    },
+    "L058": {
+      "tier": "disqualify",
+      "note": "Agency pitching outbound services to Lanternfield Automation"
+    },
+    "L059": {
+      "tier": "disqualify",
+      "note": "Competitor from an export"
+    },
+    "L060": {
+      "tier": "existing",
+      "note": "Existing customer Hafenblick Digital (owner Lena Berg)"
+    },
+    "L061": {
+      "tier": "existing",
+      "note": "Existing customer Kontor Nord, different contact"
+    },
+    "L062": {
+      "tier": "existing",
+      "note": "Open opportunity Brightpath (owner Sara Nowak)"
+    },
+    "L063": {
+      "tier": "existing",
+      "note": "LinkedIn export of an existing customer's COO"
+    },
+    "L064": {
+      "tier": "existing",
+      "note": "Churned account returning (owner Lena Berg)"
+    },
+    "L065": {
+      "tier": "warm",
+      "persona": "founder_owner",
+      "primary_pain": "manual_reporting",
+      "note": "Name shares a token with CRM account Kontor Nord; a different company in Munich — Jev should answer none"
+    }
+  }
+}

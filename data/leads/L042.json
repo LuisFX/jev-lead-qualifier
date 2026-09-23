@@ -1,0 +1,25 @@
+{
+  "id": "L042",
+  "source": "email_reply",
+  "received_at": "2026-09-16T11:22:00Z",
+  "person": {
+    "name": "Malte Petersen",
+    "title": "Founder",
+    "company": "Küstenkind Kreativ",
+    "location": "Kiel, DE"
+  },
+  "company": {
+    "name": "Küstenkind Kreativ",
+    "domain": "kuestenkind-kreativ.de",
+    "description": "Print, packaging and brand design for regional food producers; 5 people.",
+    "location": "Kiel, DE",
+    "size": "2-10"
+  },
+  "message": {
+    "text": "Nice work. We are 5 people, mostly print and packaging design, not much recurring client reporting to speak of. Let us stay in touch.",
+    "subject": "Re: agency automations",
+    "from_name": "Malte Petersen",
+    "from_domain": "kuestenkind-kreativ.de"
+  },
+  "tags": []
+}

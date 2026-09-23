@@ -1,0 +1,29 @@
+{
+  "id": "L008",
+  "source": "linkedin_dm",
+  "received_at": "2026-09-20T13:36:00Z",
+  "person": {
+    "name": "Mikkel Sørensen",
+    "title": "COO",
+    "company": "Fjord Content Agency",
+    "location": "Copenhagen, DK"
+  },
+  "company": {
+    "name": "Fjord Content Agency",
+    "domain": "fjordcontent.dk",
+    "description": "Content marketing agency producing social, blog and newsletter content for B2B and consumer clients.",
+    "location": "Copenhagen, DK",
+    "size": "11-50",
+    "services": [
+      "content production",
+      "social media management",
+      "newsletters"
+    ]
+  },
+  "message": {
+    "text": "Saw your post on agency automations. We produce around 300 pieces of content a month for 18 clients and the repurposing and scheduling is a bottleneck we cannot hire our way out of. We have set aside a budget for this quarter. Could you do a call on Thursday or Friday?",
+    "from_name": "Mikkel Sørensen",
+    "channel": "LinkedIn"
+  },
+  "tags": []
+}
