@@ -1,3 +1,8 @@
+"""Live ICP is versioned rows, not a replaced file.
+
+TEACHING NOTE: two saves → two `icp_version` rows. The live pointer moves; history stays.
+"""
+
 from __future__ import annotations
 
 import copy
@@ -17,14 +22,19 @@ def test_presets_load_and_validate():
         assert all(isinstance(v, dict) and "weight" in v for v in icp["pains"].values())
 
 
-def test_live_icp_is_seeded_from_default_and_saved_to_isolated_file():
-    assert not config.ICP_FILE.exists()
+def test_live_icp_is_seeded_from_default_and_versions_accumulate():
+    from leadqualifier.ledger import get_ledger
+
+    assert get_ledger().live_icp() is None
     icp = icp_mod.load()
-    assert icp["id"] == config.DEFAULT_PRESET and config.ICP_FILE.exists()
+    assert icp["id"] == config.DEFAULT_PRESET
+    assert len(get_ledger().list_icp_versions()) == 1
     icp["thresholds"]["fit_hot"] = 0.7
     icp_mod.save(icp)
     assert icp_mod.load()["thresholds"]["fit_hot"] == 0.7
+    assert len(get_ledger().list_icp_versions()) == 2
     assert icp_mod.reset()["thresholds"]["fit_hot"] != 0.7
+    assert len(get_ledger().list_icp_versions()) == 3
 
 
 @pytest.mark.parametrize("mutate,msg", [

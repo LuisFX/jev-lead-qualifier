@@ -1,4 +1,9 @@
-"""CLI: `python -m leadqualifier.cli score` (real Jev, prints tier accuracy) · `questions` (dump the set)."""
+"""CLI: `python -m leadqualifier.cli score` (real Jev, prints tier accuracy) · `questions` (dump the set).
+
+TEACHING NOTE: the CLI is a host. It loads leads from the ledger and answers
+through the same `Qualifier` the HTTP app uses. `--no-cache` skips the ledger;
+it does not delete rows.
+"""
 
 from __future__ import annotations
 
@@ -8,7 +13,7 @@ import sys
 
 from . import config, icp as icp_mod
 from . import constants as C
-from .cache import ResultCache
+from .ledger import get_ledger
 from .leads import load_crm, load_gold, load_leads, load_playbook
 from .metrics import compute_metrics, format_table
 from .pipeline import Qualifier, run_totals
@@ -34,7 +39,7 @@ def main(argv: list[str] | None = None) -> int:
         print(json.dumps(qs, indent=2, ensure_ascii=False))
         return 0
 
-    cache = None if a.no_cache else ResultCache(config.RESULT_CACHE_FILE)
+    cache = None if a.no_cache else get_ledger()
     qual = Qualifier(icp, load_crm(), load_playbook(), cache=cache)
     results = qual.score_many(leads, workers=a.workers, use_cache=not a.force,
                               on_result=lambda r: print(f"  {r['lead_id']}  {r['tier']:<10} fit {r['fit']:.2f} intent {r['intent']:.2f}  "

@@ -1,0 +1,22 @@
+stateDiagram-v2
+  [*] --> Nothing
+  state "Disposition" as D {
+    Nothing --> Unreviewed: Arrived
+    Unreviewed --> HeldForHuman: Flagged
+    Unreviewed --> Dismissed: PersonDismissed
+    Unreviewed --> QueuedForSequence: Queued
+    Unreviewed --> HandedToCloser: HandedOff
+    Unreviewed --> Unreviewed: ReplyArrived
+    HeldForHuman --> Dismissed: PersonDismissed
+    HeldForHuman --> QueuedForSequence: Queued
+    HeldForHuman --> HandedToCloser: HandedOff
+    HeldForHuman --> Unreviewed: ReplyArrived
+    Dismissed --> Unreviewed: ReplyArrived
+    QueuedForSequence --> Unreviewed: ReplyArrived
+    HandedToCloser --> Unreviewed: ReplyArrived
+  }
+  state "Relay" as R {
+    NoWrite --> Pending: RelayPending
+    Pending --> Delivered: RelayDelivered
+    Pending --> Failed: RelayFailed
+  }

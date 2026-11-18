@@ -11,6 +11,7 @@ __pycache__/
 
 # API response caches (Jev answers, Apollo enrichment), cost ledgers, logs
 data/cache/
+data/*.sqlite*
 .cache/
 *.jsonl
 *.log

@@ -1,3 +1,11 @@
+"""Shared fixtures.
+
+TEACHING NOTE: every test gets its own sqlite file. `isolate_files` points
+`SQLITE_PATH` at `tmp_path` and resets the ledger singleton so a test never
+writes `data/firstread.sqlite`. FIRSTREAD_RELAY=0 so the outbox thread does not
+run under TestClient.
+"""
+
 from __future__ import annotations
 
 import copy
@@ -15,11 +23,16 @@ ROOT = Path(__file__).resolve().parents[1]
 
 @pytest.fixture(autouse=True)
 def isolate_files(tmp_path, monkeypatch):
-    """Never touch data/icp.json or data/cache during unit tests."""
+    """Never touch data/icp.json, data/firstread.sqlite, or data/cache during unit tests."""
     monkeypatch.setattr(config, "ICP_FILE", tmp_path / "icp.json")
     monkeypatch.setattr(config, "RESULT_CACHE_FILE", tmp_path / "cache" / "answers.json")
     monkeypatch.setattr(config, "APOLLO_CACHE_DIR", tmp_path / "apollo")
+    monkeypatch.setattr(config, "SQLITE_PATH", tmp_path / "firstread.sqlite")
     monkeypatch.delenv("APOLLO_ENRICH", raising=False)
+    monkeypatch.setenv("FIRSTREAD_RELAY", "0")
+    from leadqualifier.ledger import reset_ledger_for_tests
+
+    reset_ledger_for_tests(tmp_path / "firstread.sqlite")
     yield
 
 

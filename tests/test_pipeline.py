@@ -1,4 +1,8 @@
-"""Qualifier with a fake Jev: one request per lead, cache reuse, ICP edits, privacy of the state."""
+"""Qualifier with a fake Jev: one request per lead, cache reuse, ICP edits, privacy of the state.
+
+TEACHING NOTE: `Ledger` here is the answer store. A persist proof belongs in
+`test_ledger.py` (new connection), not in these scoring tests.
+"""
 
 from __future__ import annotations
 
@@ -6,7 +10,7 @@ import copy
 import json
 
 from leadqualifier import icp as icp_mod
-from leadqualifier.cache import ResultCache
+from leadqualifier.ledger import Ledger
 from leadqualifier.leads import split_sentences, normalise_domain
 from leadqualifier.pipeline import Qualifier, run_totals
 
@@ -26,7 +30,7 @@ def test_sentence_ids_are_stable_and_split_sanely():
 
 
 def test_one_request_then_cache(icp, crm, playbook, fake_client, make_lead, tmp_path):
-    cache = ResultCache(tmp_path / "c.json")
+    cache = Ledger(tmp_path / "c.sqlite")
     q = Qualifier(icp, crm, playbook, client=fake_client, cache=cache)
     lead = make_lead()
     r1 = q.score(lead)
@@ -39,7 +43,7 @@ def test_one_request_then_cache(icp, crm, playbook, fake_client, make_lead, tmp_
 
 
 def test_adding_a_pain_asks_only_two_questions(icp, crm, playbook, fake_client, make_lead, tmp_path):
-    cache = ResultCache(tmp_path / "c.json")
+    cache = Ledger(tmp_path / "c.sqlite")
     lead = make_lead()
     Qualifier(icp, crm, playbook, client=fake_client, cache=cache).score(lead)
     icp2 = copy.deepcopy(icp)
@@ -52,7 +56,7 @@ def test_adding_a_pain_asks_only_two_questions(icp, crm, playbook, fake_client, 
 
 
 def test_threshold_change_rescoring_needs_no_call(icp, crm, playbook, fake_client, make_lead, tmp_path):
-    cache = ResultCache(tmp_path / "c.json")
+    cache = Ledger(tmp_path / "c.sqlite")
     lead = make_lead()
     Qualifier(icp, crm, playbook, client=fake_client, cache=cache).score(lead)
     strict = copy.deepcopy(icp)
@@ -64,7 +68,7 @@ def test_threshold_change_rescoring_needs_no_call(icp, crm, playbook, fake_clien
 
 
 def test_rescore_without_cache_returns_none(icp, crm, playbook, make_lead, tmp_path):
-    q = Qualifier(icp, crm, playbook, client=None, cache=ResultCache(tmp_path / "c.json"))
+    q = Qualifier(icp, crm, playbook, client=None, cache=Ledger(tmp_path / "c.sqlite"))
     assert q.rescore(make_lead()) is None
 
 
@@ -97,7 +101,7 @@ def test_score_many_keeps_order_and_reports_errors(icp, crm, playbook, make_lead
             return FakeClient().system_one(state, questions)
     leads = [make_lead(id="A"), make_lead(id="B", company={"name": "Broken Co", "domain": "b.de", "description": "x", "location": "x"}), make_lead(id="C")]
     errors = []
-    q = Qualifier(icp, crm, playbook, client=Flaky(), cache=ResultCache(tmp_path / "c.json"))
+    q = Qualifier(icp, crm, playbook, client=Flaky(), cache=Ledger(tmp_path / "c.sqlite"))
     results = q.score_many(leads, workers=2, on_error=lambda l, e: errors.append(l.id))
     assert [r["lead_id"] for r in results] == ["A", "C"] and errors == ["B"]
     totals = run_totals(results, len(errors), 1.0)
@@ -106,7 +110,7 @@ def test_score_many_keeps_order_and_reports_errors(icp, crm, playbook, make_lead
 
 
 def test_whole_dataset_runs_offline(icp, crm, playbook, fake_client, leads, tmp_path):
-    q = Qualifier(icp, crm, playbook, client=fake_client, cache=ResultCache(tmp_path / "c.json"))
+    q = Qualifier(icp, crm, playbook, client=fake_client, cache=Ledger(tmp_path / "c.sqlite"))
     results = q.score_many(leads, workers=4)
     assert len(results) == len(leads) == 65
     assert all(r["tier"] in ("hot", "warm", "nurture", "disqualify", "existing") for r in results)

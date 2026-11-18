@@ -1,27 +1,31 @@
-"""Question fingerprints drive cache invalidation: edit one pain → only its questions are re-asked."""
+"""Question fingerprints drive cache invalidation: edit one pain → only its questions are re-asked.
+
+TEACHING NOTE: this file used to construct `ResultCache`. The same method names
+now hit sqlite. Weight/threshold edits must not change fingerprints.
+"""
 
 from __future__ import annotations
 
 import copy
 
 from leadqualifier import constants as C
-from leadqualifier.cache import ResultCache
+from leadqualifier.ledger import Ledger
 
 
 def test_store_and_fetch_by_fingerprint(tmp_path):
-    cache = ResultCache(tmp_path / "c.json")
+    cache = Ledger(tmp_path / "c.sqlite")
     fps = {"a": "fp1", "b": "fp2"}
     cache.store("L1", fps, {"a": {"type": "noul", "p": 0.5}, "b": {"type": "noul", "p": 0.1}}, {"qids": ["a", "b"], "latency_ms": 300, "input_tokens": 1000})
     assert cache.cached_answers("L1", fps) == {"a": {"type": "noul", "p": 0.5}, "b": {"type": "noul", "p": 0.1}}
     assert cache.missing("L1", {"a": "fp1", "b": "CHANGED"}) == ["b"]
     cache.save()
-    again = ResultCache(tmp_path / "c.json")
+    again = Ledger(tmp_path / "c.sqlite")
     assert again.cached_answers("L1", fps)["a"]["p"] == 0.5
     assert again.history()["requests"] == 1 and again.history()["tokens_in"] == 1000
 
 
 def test_invalidate_specific_questions(tmp_path):
-    cache = ResultCache(tmp_path / "c.json")
+    cache = Ledger(tmp_path / "c.sqlite")
     cache.store("L1", {"a": "1", "b": "2"}, {"a": {"p": 1}, "b": {"p": 2}})
     cache.store("L2", {"a": "1"}, {"a": {"p": 1}})
     assert cache.invalidate(["a"]) == 2

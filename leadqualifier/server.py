@@ -1,5 +1,9 @@
 """FastAPI app: serves the single-page UI and a small JSON API. The API key stays server-side.
 
+TEACHING NOTE: HTTP commands become `Command`; a named refusal is 409 with the
+refusal kind. Draft POST /api/rescore does not mint an ICP version. CSV and
+People Search both `Arrive`. Contact is derived, never a column.
+
   GET  /                            the UI
   GET  /api/status                  client, ICP summary, counts, key presence (never the key), cache stats
   GET  /api/leads                   all leads (inputs only)
@@ -18,6 +22,10 @@
   POST /api/apollo/enrich           {domain} -> optional Apollo organization (flagged, cached)
   GET  /api/jev/test                one tiny request proves the key works
   DELETE /api/cache                 forget every cached answer
+  POST /api/imports                 CSV Arrive (CsvRow)
+  POST /api/search                  People Search → Arrive (ApolloPerson)
+  GET  /api/review                  HeldForHuman queue
+  POST /api/leads/{id}/command      Flag | Dismiss | Queue | HandOff | RecordReply → 409 named refusal
 """
 
 from __future__ import annotations
@@ -29,6 +37,7 @@ import queue
 import threading
 import time
 import uuid
+from contextlib import asynccontextmanager
 from pathlib import Path
 from typing import Any, Iterator
 
@@ -39,11 +48,22 @@ from pydantic import BaseModel
 
 from . import apollo, config, icp as icp_mod
 from . import constants as C
-from .cache import ResultCache
+from . import intake
 from .jev import JevClient, JevError
+from .ledger import get_ledger
 from .leads import Lead, load_crm, load_gold, load_leads, load_playbook
 from .metrics import compute_metrics
 from .pipeline import Qualifier, run_totals
+from .relay import RelayLoop
+from .workitem import (
+    Err,
+    Nothing,
+    Open,
+    Unjudged,
+    contact_json,
+    judgement_from_result,
+    parse_command,
+)
 
 log = logging.getLogger("firstread")
 FAKE_MODE = os.environ.get("FIRSTREAD_FAKE", "").strip().lower() in ("1", "true", "yes")
@@ -56,7 +76,7 @@ class AppState:
         self.crm: list[dict[str, Any]] | None = None
         self.playbook: dict[str, Any] | None = None
         self.gold: dict[str, Any] | None = None
-        self.cache: ResultCache | None = None
+        self.cache: Any | None = None
         self.client: Any | None = None
         self.jobs: dict[str, "RunJob"] = {}
         self.lock = threading.Lock()
@@ -95,9 +115,9 @@ class AppState:
             self.gold = load_gold()
         return self.gold
 
-    def get_cache(self) -> ResultCache:
+    def get_cache(self) -> Any:
         if self.cache is None:
-            self.cache = ResultCache(config.RESULT_CACHE_FILE)
+            self.cache = get_ledger()
         return self.cache
 
     def get_client(self) -> Any:
@@ -116,11 +136,28 @@ class AppState:
 
     def qualifier(self, icp: dict[str, Any] | None = None, with_client: bool = True) -> Qualifier:
         return Qualifier(icp or self.get_icp(), self.get_crm(), self.get_playbook(),
-                         client=self.get_client() if with_client else None, cache=self.get_cache())
+                         client=self.get_client() if with_client else None, cache=self.get_cache(),
+                         icp_version_id=icp_mod.live_version_id() if icp is None else None)
 
 
 STATE = AppState()
-app = FastAPI(title="First Read", version="0.1.0")
+_relay: RelayLoop | None = None
+
+
+@asynccontextmanager
+async def lifespan(_app: FastAPI):
+    get_ledger().seed_from_lead_files(config.LEADS_DIR)
+    icp_mod.load()
+    global _relay
+    if os.environ.get("FIRSTREAD_RELAY", "1").strip().lower() not in ("0", "false", "off"):
+        _relay = RelayLoop(get_ledger())
+        _relay.start()
+    yield
+    if _relay is not None:
+        _relay.stop.set()
+
+
+app = FastAPI(title="First Read", version="0.1.0", lifespan=lifespan)
 app.mount("/static", StaticFiles(directory=str(config.WEB_DIR)), name="static")
 
 
@@ -153,12 +190,32 @@ def status() -> dict[str, Any]:
         "shapes": {s: sum(1 for l in leads if l.shape == s) for s in ("message", "profile", "bio")},
         "crm_accounts": len(STATE.get_crm()), "has_gold": bool(STATE.get_gold()) and icp["id"] == config.DEFAULT_PRESET,
         "cache": {"leads": len(cache), **cache.history()}, "apollo": apollo.status(), "workers": config.workers(),
+        "icp_version_id": icp_mod.live_version_id(),
+        "hubspot": {"write": config.hubspot_write_enabled(), "has_token": config.hubspot_token() is not None},
+        "review": len(get_ledger().list_held()),
     }
+
+
+def _public_lead(lead: Lead) -> dict[str, Any]:
+    row = get_ledger().get_row(lead.id)
+    state = get_ledger().snapshot_state(row) if row else Nothing()
+    body = lead.to_json()
+    if body.get("person"):
+        body["person"] = {k: v for k, v in body["person"].items() if k not in ("email", "phone")}
+    email = (lead.person or {}).get("email")
+    body["contact"] = contact_json(state if isinstance(state, Open) else Nothing(), email)
+    if isinstance(state, Open):
+        body["disposition"] = state.disposition.kind
+        body["relay"] = state.relay.kind
+    else:
+        body["disposition"] = "unreviewed"
+        body["relay"] = "no_write"
+    return body
 
 
 @app.get("/api/leads")
 def leads() -> list[dict[str, Any]]:
-    return [l.to_json() for l in STATE.get_leads()]
+    return [_public_lead(l) for l in STATE.get_leads()]
 
 
 @app.get("/api/leads/{lead_id}")
@@ -167,7 +224,7 @@ def lead_detail(lead_id: str) -> dict[str, Any]:
     q = STATE.qualifier(with_client=False)
     result = q.rescore(lead)
     questions, _ = q.questions_for(lead)
-    return {"lead": lead.to_json(), "result": result, "questions": C.describe_questions(questions), "state": lead.to_state()}
+    return {"lead": _public_lead(lead), "result": result, "questions": C.describe_questions(questions), "state": lead.to_state()}
 
 
 def _results_under(icp: dict[str, Any]) -> list[dict[str, Any]]:
@@ -322,7 +379,8 @@ class ICPBody(BaseModel):
 @app.get("/api/icp")
 def get_icp() -> dict[str, Any]:
     return {"icp": STATE.get_icp(), "stale": STATE.qualifier(with_client=False).stale_summary(STATE.get_leads()),
-            "presets": icp_mod.list_presets(), "default": config.DEFAULT_PRESET}
+            "presets": icp_mod.list_presets(), "default": config.DEFAULT_PRESET, "version_id": icp_mod.live_version_id(),
+            "versions": len(get_ledger().list_icp_versions())}
 
 
 @app.put("/api/icp")
@@ -413,3 +471,81 @@ def clear_cache() -> dict[str, Any]:
     cache.clear()
     cache.save()
     return {"ok": True}
+
+
+class ImportBody(BaseModel):
+    csv: str
+    import_id: str | None = None
+
+
+@app.post("/api/imports")
+def import_csv(body: ImportBody) -> dict[str, Any]:
+    out = intake.arrive_csv(get_ledger(), body.csv, body.import_id)
+    STATE.leads = None
+    return out
+
+
+class SearchBody(BaseModel):
+    titles: list[str] | None = None
+    locations: list[str] | None = None
+    employee_ranges: list[str] | None = None
+    keywords: list[str] | None = None
+    page: int = 1
+
+
+@app.get("/api/search/filters")
+def search_filters() -> dict[str, Any]:
+    return intake.filters_payload(STATE.get_icp())
+
+
+@app.post("/api/search")
+def people_search(body: SearchBody | None = None) -> dict[str, Any]:
+    filters = intake.filters_payload(STATE.get_icp())
+    if body is not None:
+        if body.titles is not None:
+            filters["titles"] = body.titles
+        if body.locations is not None:
+            filters["locations"] = body.locations
+        if body.employee_ranges is not None:
+            filters["employee_ranges"] = body.employee_ranges
+        if body.keywords is not None:
+            filters["keywords"] = body.keywords
+    found = apollo.search_people(filters, page=body.page if body else 1)
+    if not found.get("ok"):
+        raise HTTPException(502, found.get("reason") or "People Search failed")
+    landed = intake.arrive_apollo_people(get_ledger(), found.get("people") or [])
+    STATE.leads = None
+    return {**landed, "filters": filters, "hits": len(found.get("people") or [])}
+
+
+@app.get("/api/review")
+def review_queue() -> dict[str, Any]:
+    q = STATE.qualifier(with_client=False)
+    items = []
+    for row in get_ledger().list_held():
+        lead = intake.lead_from_row(row)
+        items.append({"lead": _public_lead(lead), "result": q.rescore(lead)})
+    return {"items": items}
+
+
+class CommandBody(BaseModel):
+    kind: str
+    remote_id: str | None = None
+    reason: str | None = None
+
+
+@app.post("/api/leads/{lead_id}/command")
+def lead_command(lead_id: str, body: CommandBody) -> dict[str, Any]:
+    STATE.lead(lead_id)  # 404 if unknown to the board
+    try:
+        cmd = parse_command(body.kind, {"remote_id": body.remote_id, "reason": body.reason})
+    except ValueError as exc:
+        raise HTTPException(422, str(exc))
+    lead = STATE.lead(lead_id)
+    result = STATE.qualifier(with_client=False).rescore(lead)
+    judgement = Unjudged() if result is None else judgement_from_result(icp_mod.live_version_id(), result)
+    out = get_ledger().apply_command(lead_id, cmd, judgement)
+    if isinstance(out, Err):
+        raise HTTPException(409, {"refusal": out.error.kind})
+    STATE.leads = None
+    return lead_detail(lead_id)

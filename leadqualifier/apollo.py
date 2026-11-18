@@ -1,7 +1,14 @@
-"""Optional read-only enrichment via Apollo (organization by domain). Behind APOLLO_ENRICH=1.
+"""Apollo: organisation enrich (optional) and People Search intake.
 
-Cached on disk per domain; every failure degrades to `{"ok": false, "reason": ...}` so the demo
-never depends on it. Nothing from Apollo is written to the dataset; the UI shows it side by side.
+TEACHING NOTE: People Search is POST `/api/v1/mixed_people/api_search` with
+`x-api-key`. That endpoint does not return email or phone — `contactOf` stays
+Hidden until a later reveal. We do not invent Apollo industry tag ids (ts-008).
+A refused search is keyed on Apollo's `error_details.code` (HTTP status alone
+does not say whether the key is dead or the plan forbids the endpoint).
+Organisation enrich writes `account_snapshot` on success (ts-014); hashed files
+are a short-ttl duplicate, not the only copy. Failures stay uncached.
+
+⭐ ENFORCED BY: `tests/test_intake.py`, `tests/test_account_snapshot.py`.
 """
 
 from __future__ import annotations
@@ -16,6 +23,7 @@ from . import config
 from .leads import normalise_domain
 
 API = "https://api.apollo.io/api/v1/organizations/enrich"
+PEOPLE_SEARCH = "https://api.apollo.io/api/v1/mixed_people/api_search"
 
 
 def status() -> dict[str, Any]:
@@ -53,4 +61,46 @@ def enrich(domain: str, timeout: float = 8.0) -> dict[str, Any]:
             "keywords": (org.get("keywords") or [])[:12], "revenue": org.get("annual_revenue_printed")}}
     if out["ok"]:  # failures are not cached so a later retry can succeed
         cache_file.write_text(json.dumps(out, ensure_ascii=False), encoding="utf-8")
+        from .ledger import get_ledger
+
+        get_ledger().put_account_snapshot(dom, out)
+        out = {**out, **(get_ledger().get_account_snapshot(dom) or {})}
     return out
+
+
+def search_people(filters: dict[str, Any], page: int = 1, per_page: int = 25, timeout: float = 12.0) -> dict[str, Any]:
+    """Read-only People Search. Email is not on the hit (Apollo's documented contract)."""
+    if not config.apollo_api_key():
+        return {"ok": False, "reason": "APOLLO_API_KEY is not set", "people": []}
+    body: dict[str, Any] = {"page": page, "per_page": per_page}
+    if filters.get("titles"):
+        body["person_titles"] = list(filters["titles"])
+    if filters.get("locations"):
+        body["person_locations"] = list(filters["locations"])
+    if filters.get("employee_ranges"):
+        body["organization_num_employees_ranges"] = list(filters["employee_ranges"])
+    if filters.get("keywords"):
+        body["q_keywords"] = " ".join(filters["keywords"]) if isinstance(filters["keywords"], list) else filters["keywords"]
+    try:
+        r = httpx.post(
+            PEOPLE_SEARCH,
+            json=body,
+            headers={"x-api-key": config.apollo_api_key() or "", "Content-Type": "application/json", "Cache-Control": "no-cache"},
+            timeout=timeout,
+        )
+    except httpx.HTTPError as exc:
+        return {"ok": False, "reason": f"connection error: {type(exc).__name__}", "people": []}
+    if r.status_code >= 400:
+        code = None
+        try:
+            payload = r.json() or {}
+            details = payload.get("error_details") if isinstance(payload, dict) else None
+            if isinstance(details, dict):
+                code = details.get("code")
+        except ValueError:
+            pass
+        reason = f"Apollo {code} (HTTP {r.status_code})" if code else f"Apollo returned HTTP {r.status_code}"
+        return {"ok": False, "reason": reason, "people": [], "status": r.status_code}
+    data = r.json() or {}
+    people = data.get("people") or data.get("contacts") or []
+    return {"ok": True, "people": people, "pagination": data.get("pagination") or {}, "status": r.status_code}

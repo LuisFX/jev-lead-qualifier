@@ -8,6 +8,7 @@
 #   ./run.sh test-all         # + integration tests against the real API (~60 requests, < 1 cent)
 #   ./run.sh shots            # Playwright screenshots → reports/ui/
 #   ./run.sh questions        # dump the question set built from data/icp.json
+#   ./run.sh oracles          # execute every oracle on the roster (0 failed, law floor)
 set -euo pipefail
 cd "$(dirname "$0")"
 
@@ -48,6 +49,8 @@ case "$cmd" in
     exec uv run python scripts/ui_screenshots.py "$@" ;;
   questions)
     exec uv run python -m leadqualifier.cli questions "$@" ;;
+  oracles)
+    exec ./scripts/check_oracles.sh "$@" ;;
   python)
     exec uv run python "$@" ;;
   *)

@@ -1,4 +1,8 @@
-"""API surface with a fake Jev client injected. Files are isolated by conftest."""
+"""API surface with a fake Jev client injected. Files are isolated by conftest.
+
+TEACHING NOTE: 409 is a named refusal (`detail.refusal`), not a validation error.
+Draft POST /api/rescore must not insert an `icp_version` row.
+"""
 
 from __future__ import annotations
 
@@ -65,6 +69,7 @@ def test_run_stream_then_results_from_cache(client):
 def test_score_one_and_unknown_lead(client):
     r = client.post("/api/score/L001").json()
     assert r["lead_id"] == "L001" and r["meta"]["n_asked"] > 20
+    assert r["icp_version_id"]
     assert client.post("/api/score/NOPE").status_code == 404
 
 
@@ -125,7 +130,38 @@ def test_every_page_renders_without_a_key(monkeypatch):
     with TestClient(server.app) as c:
         s = c.get("/api/status").json()
         assert s["jev_key"] is False and s["leads"] == 65
-        for url in ("/", "/api/leads", "/api/leads/L001", "/api/results", "/api/icp", "/api/icp/presets", "/api/questions", "/api/playbook", "/api/crm"):
+        for url in ("/", "/api/leads", "/api/leads/L001", "/api/results", "/api/icp", "/api/icp/presets", "/api/questions", "/api/playbook", "/api/crm", "/api/review"):
             assert c.get(url).status_code == 200, url
         r = c.post("/api/score/L001")
         assert r.status_code == 503 and "TYPESAFE_API_KEY" in r.json()["detail"]
+
+
+def test_flag_unjudged_is_409(client):
+    r = client.post("/api/leads/L001/command", json={"kind": "flag"})
+    assert r.status_code == 409 and r.json()["detail"]["refusal"] == "not_judged"
+
+
+def test_dismiss_hides_contact(client):
+    r = client.post("/api/leads/L001/command", json={"kind": "dismiss"})
+    assert r.status_code == 200
+    lead = r.json()["lead"]
+    assert lead["disposition"] == "dismissed" and lead["contact"]["kind"] == "hidden"
+    assert "email" not in json.dumps(lead.get("person") or {})
+
+
+def test_csv_import_http(client):
+    csv = "name,domain,title,message\nAda,a.de,Founder,Hi\nBob,b.de,CMO,Hello\nCara,c.de,VP,Hey\n"
+    r = client.post("/api/imports", json={"csv": csv, "import_id": "http-1"}).json()
+    assert r["rows"] == 3 and len(r["inserted"]) == 3
+    again = client.post("/api/imports", json={"csv": csv, "import_id": "http-1"}).json()
+    assert again["inserted"] == []
+
+
+def test_rescore_draft_does_not_mint_a_version(client):
+    from leadqualifier.ledger import get_ledger
+
+    n = len(get_ledger().list_icp_versions())
+    icp = client.get("/api/icp").json()["icp"]
+    icp["thresholds"]["fit_hot"] = 0.99
+    client.post("/api/rescore", json={"icp": icp})
+    assert len(get_ledger().list_icp_versions()) == n

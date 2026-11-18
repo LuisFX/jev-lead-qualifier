@@ -1,4 +1,11 @@
-/* First Read — single-page UI. Plain JS, no build step. */
+/* First Read — single-page UI. Plain JS, no build step.
+
+   TEACHING NOTE: Elmish shape in the host — `state` is the Model; clicks send
+   commands (`api(...)`) rather than mutating disposition in the page. Location
+   is the hash: `#lead/{id}`, `#review`. Mode is Viewing | Reviewing. Contact
+   is whatever the API derived (`contactOf`); the page never stores an email.
+   ⭐ ENFORCED BY: the lead/review API. 🔴 UNENFORCED: nothing typechecks this file.
+*/
 (() => {
   const $ = (sel, root = document) => root.querySelector(sel);
   const $$ = (sel, root = document) => Array.from(root.querySelectorAll(sel));
@@ -33,7 +40,7 @@
   };
   const api = async (url, opts = {}) => {
     const r = await fetch(url, { headers: { "Content-Type": "application/json" }, ...opts });
-    if (!r.ok) { let msg = r.statusText; try { msg = (await r.json()).detail || msg; } catch (_) {} throw new Error(msg); }
+    if (!r.ok) { let msg = r.statusText; try { const j = await r.json(); msg = (j.detail && j.detail.refusal) || j.detail || msg; } catch (_) {} throw new Error(typeof msg === "string" ? msg : JSON.stringify(msg)); }
     return r.json();
   };
   const busy = (btn, on) => { if (!btn) return; btn.classList.toggle("busy", on); btn.disabled = on; };
@@ -41,7 +48,7 @@
   const debounce = (fn, ms) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
 
   const state = { status: null, leads: [], leadsById: {}, results: {}, totals: null, metrics: null, icp: null, icpDraft: null, presets: [], playbook: null,
-                  currentLead: null, running: false, lastRun: null, evidenceOff: new Set(), filters: {} };
+                  currentLead: null, running: false, lastRun: null, evidenceOff: new Set(), filters: {}, mode: "viewing" };
   const session = { cost: 0, requests: 0, latencies: [] };
 
   // ------------------------------------------------------------------ theme
@@ -56,8 +63,10 @@
     if (name === "explore") renderExplore();
     if (name === "accuracy") renderAccuracy();
     if (name === "connect") renderConnect();
+    if (name === "review") { state.mode = "reviewing"; loadReview(); } else state.mode = "viewing";
     if (name === "lead" && !state.currentLead && state.leads.length) openLead(state.leads[0].id);
-    history.replaceState(null, "", `#${name}`);
+    if (name === "lead" && state.currentLead) history.replaceState(null, "", `#lead/${state.currentLead}`);
+    else history.replaceState(null, "", `#${name}`);
   };
   $$(".nav-btn").forEach((b) => b.addEventListener("click", () => showPage(b.dataset.page)));
 
@@ -253,6 +262,7 @@
     state.currentLead = id;
     $("#lead-select").value = id;
     showPageQuiet("lead");
+    history.replaceState(null, "", `#lead/${id}`);
     const d = await api(`/api/leads/${id}`);
     renderLead(d);
     if (flash) { $("#tier-card").classList.remove("flash"); void $("#tier-card").offsetWidth; $("#tier-card").classList.add("flash"); }
@@ -276,6 +286,8 @@
     const { lead, result: r } = d;
     $("#lead-title").textContent = `${lead.company_name} — ${lead.person_name}`;
     $("#lead-sub").textContent = `${lead.source_label} · received ${lead.received_at.slice(0, 10)} · ${lead.shape === "message" ? "inbound message" : lead.shape === "bio" ? "executive bio" : "company profile"}${lead.tags?.length ? " · " + lead.tags.join(", ") : ""}`;
+    const contact = lead.contact?.kind === "revealed" ? lead.contact.address : "hidden";
+    if ($("#lead-disp")) $("#lead-disp").textContent = `${lead.disposition || "unreviewed"} · contact ${contact}`;
     if (!r) {
       $("#lead-empty").hidden = false; $("#lead-grid").hidden = true;
       $("#lead-empty").innerHTML = `<div class="empty-mark">¶</div><p>${esc(lead.company_name)} has not been scored yet. Press <b>Score this lead now</b> (one Jev request) or run the whole pipeline.</p>`;
@@ -668,7 +680,7 @@
 
   // ------------------------------------------------------------------ connect
   const INPUTS = [["W", "Website forms", "Webhook from Typeform, Webflow, HubSpot forms or a plain HTML form — message + page context"], ["I", "Instantly · Apollo replies", "Reply webhooks from cold-email tools; the thread is the message, the export row is the profile"], ["L", "LinkedIn exports & DMs", "CSV exports of connections or Sales Navigator lists; DMs pasted or forwarded"], ["M", "Shared inbox (IMAP)", "hello@ / sales@ read-only; nothing marked as read"]];
-  const OUTPUTS = [["H", "HubSpot · Pipedrive · Attio", "tier, route, fit, intent, primary pain, reasons and next action written as properties; existing accounts get a note, not a new record"], ["C", "Founder calendar", "Hot leads get two proposed slots (Cal.com / Calendly link) in the draft reply"], ["S", "SDR sequence A", "Warm leads enrolled in a 3-step sequence with the matching case study"], ["N", "Nurture & decline drafts", "Nurture list for the newsletter tool; decline templates saved as drafts, never auto-sent"]];
+  const OUTPUTS = [["H", "HubSpot", "Hand off a Hot lead: tier, route, fit, intent, primary pain and next action go on a test contact (or a note on an existing company). Off until HubSpot write is switched on."], ["C", "Founder calendar", "Hot leads get two proposed slots (Cal.com / Calendly link) in the draft reply"], ["S", "SDR sequence A", "Warm leads enrolled in a 3-step sequence with the matching case study"], ["N", "Nurture & decline drafts", "Nurture list for the newsletter tool; decline templates saved as drafts, never auto-sent"]];
   function renderConnect() {
     const inp = $("#connect-inputs"); inp.innerHTML = ""; for (const [ic, nm, ds] of INPUTS) inp.append(el("div", { class: "connector" }, el("span", { class: "ic" }, ic), el("div", {}, el("div", { class: "nm" }, nm), el("div", { class: "ds" }, ds)), el("span", { class: "pill" }, "webhook · CSV")));
     const out = $("#connect-outputs"); out.innerHTML = ""; for (const [ic, nm, ds] of OUTPUTS) out.append(el("div", { class: "connector" }, el("span", { class: "ic" }, ic), el("div", {}, el("div", { class: "nm" }, nm), el("div", { class: "ds" }, ds)), el("span", { class: "pill" }, "API")));
@@ -694,6 +706,50 @@
     busy(btn, false);
   });
 
+  async function sendCommand(kind) {
+    if (!state.currentLead) return;
+    try {
+      const d = await api(`/api/leads/${state.currentLead}/command`, { method: "POST", body: JSON.stringify({ kind }) });
+      renderLead(d);
+      toast(`${kind.replace("_", " ")} · ${d.lead.disposition}`);
+      if (state.mode === "reviewing") loadReview();
+    } catch (e) { toast(e.message, true); }
+  }
+  $$("#lead-commands [data-cmd]").forEach((b) => b.addEventListener("click", () => sendCommand(b.dataset.cmd)));
+
+  async function loadReview() {
+    const d = await api("/api/review");
+    const box = $("#review-list"); if (!box) return;
+    box.innerHTML = "";
+    if (!d.items.length) { box.append(el("p", { class: "muted" }, "Nothing is held. Score leads that need a human, or press Hold on a lead page.")); return; }
+    for (const item of d.items) {
+      const lead = item.lead, r = item.result;
+      const card = el("div", { class: "card review-item", onclick: () => openLead(lead.id) });
+      card.append(el("div", { class: "card-head" }, el("div", {}, el("div", { class: "eyebrow" }, lead.disposition), el("h3", {}, `${lead.company_name} — ${lead.person_name}`)), r ? el("span", { class: "tpill", "data-tier": r.tier }, r.tier) : null));
+      card.append(el("p", { class: "small muted" }, r ? r.why?.[r.why.length - 1] : "Not scored yet"));
+      box.append(card);
+    }
+  }
+
+  $("#btn-csv")?.addEventListener("click", async () => {
+    const btn = $("#btn-csv"); busy(btn, true);
+    try {
+      const r = await api("/api/imports", { method: "POST", body: JSON.stringify({ csv: $("#csv-text").value }) });
+      $("#csv-meta").textContent = `${r.inserted.length} arrived · ${r.skipped.length} already there`;
+      await loadLeads(); toast(`CSV: ${r.inserted.length} work items`);
+    } catch (e) { toast(e.message, true); }
+    busy(btn, false);
+  });
+  $("#btn-search")?.addEventListener("click", async () => {
+    const btn = $("#btn-search"); busy(btn, true);
+    try {
+      const r = await api("/api/search", { method: "POST", body: JSON.stringify({}) });
+      $("#search-meta").textContent = `${r.inserted.length} arrived · ${r.skipped.length} already there · ${r.hits} hits`;
+      await loadLeads(); toast(`Search: ${r.inserted.length} work items`);
+    } catch (e) { toast(e.message, true); }
+    busy(btn, false);
+  });
+
   // ------------------------------------------------------------------ boot
   async function boot() {
     await loadStatus();
@@ -702,7 +758,9 @@
     await loadResults();
     renderValue();
     const initial = location.hash.replace("#", "");
-    if (["pipeline", "lead", "icp", "accuracy", "explore", "connect"].includes(initial)) showPage(initial);
+    const leadMatch = initial.match(/^lead\/(.+)$/);
+    if (leadMatch) openLead(leadMatch[1]);
+    else if (["pipeline", "lead", "review", "icp", "accuracy", "explore", "connect"].includes(initial)) showPage(initial);
     const q = new URLSearchParams(location.search);
     if (q.get("lead")) openLead(q.get("lead"));
     if (q.get("run")) run(q.get("run") === "fresh");

@@ -4,6 +4,8 @@
 <meta charset="utf-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>First Read · Lanternfield Automation lead qualification</title>
+<!-- TEACHING NOTE: one HTML file, pages are sections. Hash routing lives in app.js.
+     Review, CSV intake, and lead commands are first-class pages/controls, not a second app. -->
 <meta name="color-scheme" content="light dark">
 <script>
   // Theme before first paint: URL ?theme > stored choice > OS preference.
@@ -29,6 +31,7 @@
   <nav class="nav" role="tablist">
     <button class="nav-btn active" data-page="pipeline">Pipeline</button>
     <button class="nav-btn" data-page="lead">Lead</button>
+    <button class="nav-btn" data-page="review">Review</button>
     <button class="nav-btn" data-page="icp">ICP</button>
     <button class="nav-btn" data-page="accuracy">Accuracy</button>
     <button class="nav-btn" data-page="explore">Explore</button>
@@ -123,6 +126,22 @@
     </div>
   </div>
 
+  <div class="card intake-card" id="intake-card">
+    <div class="card-head"><div><div class="eyebrow">Intake</div><h3>CSV rows and People Search land as work items</h3></div></div>
+    <div class="intake-grid">
+      <div>
+        <label class="field"><span>CSV (name, domain, title, message)</span><textarea id="csv-text" rows="4" placeholder="name,domain,title,message&#10;Ada Lovelace,analytical.de,Founder,We are drowning in reports."></textarea></label>
+        <button class="btn" id="btn-csv">Arrive CSV</button>
+        <span class="meta" id="csv-meta"></span>
+      </div>
+      <div>
+        <p class="small muted">People Search uses the live profile’s personas as titles. Email is not on the hit.</p>
+        <button class="btn" id="btn-search">Search Apollo</button>
+        <span class="meta" id="search-meta"></span>
+      </div>
+    </div>
+  </div>
+
   <div class="board-head">
     <div><div class="eyebrow">Tier board</div><h3 id="board-title">Nothing scored yet — press <b>Run all leads</b></h3></div>
     <div class="legend"><span class="lg green">high confidence</span><span class="lg amber">needs a human</span><span class="lg grey">from cache</span></div>
@@ -144,6 +163,14 @@
       <span class="meta mono" id="lead-meta"></span>
     </div>
   </div>
+  <div class="run-controls cmd-row" id="lead-commands">
+      <button class="btn small" data-cmd="flag">Hold for a human</button>
+      <button class="btn small" data-cmd="dismiss">Dismiss</button>
+      <button class="btn small" data-cmd="queue">Queue sequence</button>
+      <button class="btn small" data-cmd="hand_off">Hand off</button>
+      <button class="btn small" data-cmd="record_reply">Record a reply</button>
+      <span class="meta" id="lead-disp"></span>
+  </div>
   <div class="empty card" id="lead-empty"><div class="empty-mark">¶</div><p>Choose a lead above or click a card on the Pipeline board.</p></div>
   <div class="grid-lead" id="lead-grid" hidden>
     <div class="col-left">
@@ -160,6 +187,16 @@
       <div class="card collapsible" id="answers-card"></div>
     </div>
   </div>
+</section>
+
+<!-- ============================================================ REVIEW -->
+<section class="page" id="page-review">
+  <div class="sec">
+    <div class="eyebrow">Review</div>
+    <h2>Held for a human.</h2>
+    <p class="sub">Jev scored these; a person decides. Dismissed items never show the address.</p>
+  </div>
+  <div id="review-list" class="review-list"></div>
 </section>
 
 <!-- ============================================================ ICP -->
@@ -263,7 +300,7 @@
       <ul class="plain small">
         <li>Sent to Jev: company description, person name, title and bio, the message text, and the ICP option texts. <b>Never</b> e-mail addresses or phone numbers.</li>
         <li>Nothing is generated: Jev returns probabilities over options you defined. Decline drafts are templates filled in code and are never auto-sent.</li>
-        <li>Answers are cached per lead and question in <span class="mono">data/cache/</span>; delete it and nothing is remembered.</li>
+        <li>Answers are stored per lead and question in the sqlite ledger; they survive a restart.</li>
         <li>A message that asks for credentials or personal data is flagged for security review and never routed automatically.</li>
       </ul>
       <div class="kv-grid" id="connect-kv"></div>

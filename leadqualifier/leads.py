@@ -4,6 +4,10 @@ A lead links a person, a company and optionally a message. Any of the three may 
 inbound messages often come with only a name, LinkedIn exports have a bio but no message,
 Apollo exports have a company profile and nothing else.
 
+TEACHING NOTE: the 65 demo files in `data/leads/` are the seed, not a third Arrival.
+They land as `CsvRow` of `import_id = demo-v1`. `load_leads` reads the work-item
+snapshot. ⭐ ENFORCED BY: `tests/test_ledger.py` (count 65, `L001` present, re-seed inserts 0).
+
 Privacy: the state sent to Jev never contains the lead's e-mail address or phone number.
 Names, titles, bios, company descriptions and the message text are needed for the
 judgements and are sent; contact details are not.
@@ -150,17 +154,29 @@ def normalise_domain(domain: str | None) -> str | None:
 # --------------------------------------------------------------------------- loading
 
 
-def load_leads(directory: Path | None = None) -> list[Lead]:
+def lead_from_payload(item: dict[str, Any]) -> Lead:
+    return Lead(id=item["id"], source=item.get("source", "website_form"), received_at=item.get("received_at", ""),
+                person=item.get("person"), company=item.get("company"), message=item.get("message"),
+                tags=list(item.get("tags", [])))
+
+
+def read_lead_files(directory: Path | None = None) -> list[dict[str, Any]]:
     directory = directory or config.LEADS_DIR
-    leads: list[Lead] = []
+    out: list[dict[str, Any]] = []
     for path in sorted(directory.glob("*.json")):
         d = json.loads(path.read_text(encoding="utf-8"))
         items = d if isinstance(d, list) else [d]
-        for item in items:
-            leads.append(Lead(id=item["id"], source=item.get("source", "website_form"), received_at=item.get("received_at", ""),
-                              person=item.get("person"), company=item.get("company"), message=item.get("message"),
-                              tags=list(item.get("tags", []))))
-    return leads
+        out.extend(items)
+    return out
+
+
+def load_leads(directory: Path | None = None) -> list[Lead]:
+    """Snapshots from the ledger. Seeds `demo-v1` from JSON files when the store is empty."""
+    from .ledger import get_ledger
+
+    ledger = get_ledger()
+    ledger.seed_from_lead_files(directory or config.LEADS_DIR)
+    return [lead_from_payload(json.loads(row["payload_json"])) for row in ledger.list_rows()]
 
 
 def load_crm(path: Path | None = None) -> list[dict[str, Any]]:

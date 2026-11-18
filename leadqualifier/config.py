@@ -1,4 +1,11 @@
-"""Paths and environment. API keys are read from the environment only and never logged."""
+"""Paths and environment. API keys are read from the environment only and never logged.
+
+TEACHING NOTE: a secret is a process-environment value. This module names the
+variables; it never prints them. `APOLLO_ENRICH` gates organisation enrich only.
+People Search gates on `APOLLO_API_KEY` alone. HubSpot write needs `HUBSPOT_WRITE=1`
+and a token. ⭐ ENFORCED BY: callers use these functions; 🔴 UNENFORCED: nothing
+stops a caller from `os.environ.get` beside this file.
+"""
 
 from __future__ import annotations
 
@@ -16,8 +23,10 @@ CRM_FILE = DATA_DIR / "crm.json"
 GOLD_FILE = DATA_DIR / "gold.json"
 PLAYBOOK_FILE = DATA_DIR / "playbook.json"
 CACHE_DIR = Path(os.environ.get("FIRSTREAD_CACHE_DIR", str(DATA_DIR / "cache")))
-RESULT_CACHE_FILE = CACHE_DIR / "answers.json"
+RESULT_CACHE_FILE = CACHE_DIR / "answers.json"  # retired; answers live in SQLITE_PATH
+SQLITE_PATH = Path(os.environ.get("FIRSTREAD_SQLITE", str(DATA_DIR / "firstread.sqlite")))
 APOLLO_CACHE_DIR = CACHE_DIR / "apollo"
+HUBSPOT_API = "https://api.hubapi.com"
 
 MISSING_KEY_MESSAGE = (
     "Add your TypeSafe key to run this live: put TYPESAFE_API_KEY=… in .env "
@@ -41,6 +50,24 @@ def apollo_api_key() -> str | None:
 def apollo_enabled() -> bool:
     flag = os.environ.get("APOLLO_ENRICH", "").strip().lower()
     return flag in ("1", "true", "yes", "on") and apollo_api_key() is not None
+
+
+def hubspot_token() -> str | None:
+    for var in ("HUBSPOT_ACCESS_TOKEN", "HUBSPOT_PRIVATE_APP_TOKEN"):
+        v = os.environ.get(var, "").strip()
+        if v and not v.startswith("your-"):
+            return v
+    return None
+
+
+def hubspot_write_enabled() -> bool:
+    flag = os.environ.get("HUBSPOT_WRITE", "").strip().lower()
+    return flag in ("1", "true", "yes", "on") and hubspot_token() is not None
+
+
+def hubspot_test_contact_id() -> str | None:
+    v = os.environ.get("HUBSPOT_TEST_CONTACT_ID", "").strip()
+    return v or None
 
 
 def workers() -> int:

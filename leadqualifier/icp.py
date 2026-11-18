@@ -1,9 +1,11 @@
 """The ideal customer profile: the client's answer space, in plain English, as data.
 
-`data/icp.json` is the live profile (edited in the UI); `data/icp_presets/*.json` are the
-starting points (one build, many clients). Everything Jev is asked — industries, personas,
-pains, disqualifiers — is derived from this file by `constants.build_questions`; everything
-code decides with — weights, thresholds, routes — is read from it by `scoring`.
+TEACHING NOTE: `save` INSERTs an `icp_version` row. It does not replace. The live
+pointer is a single `app_state` row. `data/icp.json` and `data/icp_presets/*.json`
+are seeds, not the live store. An unsaved draft POST /api/rescore does not mint a
+version (ts-005).
+
+⭐ ENFORCED BY: `tests/test_icp_and_metrics.py` (two saves → two version rows).
 """
 
 from __future__ import annotations
@@ -44,18 +46,35 @@ def load_preset(preset_id: str) -> dict[str, Any]:
 
 
 def load() -> dict[str, Any]:
-    """The live ICP; seeded from the default preset when missing."""
-    if not config.ICP_FILE.exists():
-        save(load_preset(config.DEFAULT_PRESET))
-    return validate(_read(config.ICP_FILE))
+    """The live ICP from the ledger; seeded from the file or default preset when empty."""
+    from .ledger import get_ledger
+
+    live = get_ledger().live_icp()
+    if live is not None:
+        return validate(live[1])
+    if config.ICP_FILE.exists():
+        return save(validate(_read(config.ICP_FILE)))
+    return save(load_preset(config.DEFAULT_PRESET))
+
+
+def live_version_id() -> str:
+    from .ledger import get_ledger
+
+    vid = get_ledger().live_icp_version_id()
+    if vid is None:
+        load()
+        vid = get_ledger().live_icp_version_id()
+    if vid is None:
+        raise ICPError("no live ICP version")
+    return vid
 
 
 def save(icp: dict[str, Any]) -> dict[str, Any]:
+    """Insert a version; point live at it. Does not replace a prior row."""
+    from .ledger import get_ledger
+
     icp = validate(icp)
-    config.ICP_FILE.parent.mkdir(parents=True, exist_ok=True)
-    tmp = config.ICP_FILE.with_suffix(".tmp")
-    tmp.write_text(json.dumps(icp, indent=2, ensure_ascii=False), encoding="utf-8")
-    tmp.replace(config.ICP_FILE)
+    get_ledger().insert_icp_version(icp)
     return icp
 
 

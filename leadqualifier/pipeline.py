@@ -1,9 +1,11 @@
-"""One Jev request per lead; ~30 atomic questions; answers cached per question; tier decided in code.
+"""One Jev request per lead; ~30 atomic questions; answers committed per question; tier decided in code.
 
     Qualifier(icp, crm, playbook, client, cache).score(lead)         -> result dict
     Qualifier.score_many(leads, workers, on_result, on_error, stop)  -> list of results (dataset order)
     Qualifier.rescore(lead)                                          -> result from cache only, never calls Jev
 
+TEACHING NOTE: `cache` is the sqlite ledger. `store` commits inside `score` as Jev
+returns — `score_many` does not flush a batch. ⭐ ENFORCED BY: `tests/test_ledger.py`.
 `client` is anything with `.system_one(state, questions) -> JevResponse`; tests inject a fake.
 """
 
@@ -16,7 +18,6 @@ from concurrent.futures import ThreadPoolExecutor, as_completed
 from typing import Any, Callable
 
 from . import constants as C
-from .cache import ResultCache
 from .dedupe import shortlist
 from .jev import JevClient, JevResponse
 from .leads import Lead
@@ -30,12 +31,13 @@ ErrorHook = Callable[[Lead, Exception], None]
 
 class Qualifier:
     def __init__(self, icp: dict[str, Any], crm: list[dict[str, Any]], playbook: dict[str, Any],
-                 client: Any | None = None, cache: ResultCache | None = None):
+                 client: Any | None = None, cache: Any | None = None, icp_version_id: str | None = None):
         self.icp = icp
         self.crm = crm
         self.playbook = playbook
         self._client = client
         self.cache = cache
+        self.icp_version_id = icp_version_id
 
     @property
     def client(self) -> Any:
@@ -90,6 +92,9 @@ class Qualifier:
         result = assemble(self.icp, lead, answers, candidates, self.playbook)
         result["meta"] = meta
         result["questions_asked"] = missing
+        if self.icp_version_id:
+            result["icp_version_id"] = self.icp_version_id
+        self._flag_if_needed(lead.id, result)
         return result
 
     def rescore(self, lead: Lead) -> dict[str, Any] | None:
@@ -105,7 +110,21 @@ class Qualifier:
         result["meta"] = {"model": C.MODEL, "latency_ms": 0, "input_tokens": 0, "output_tokens": 0, "cost_usd": 0.0, "n_asked": 0,
                           "n_questions": len(questions), "cached": True, "stale": [q for q in fps if q not in cached]}
         result["questions_asked"] = []
+        if self.icp_version_id:
+            result["icp_version_id"] = self.icp_version_id
         return result
+
+    def _flag_if_needed(self, lead_id: str, result: dict[str, Any]) -> None:
+        """After assemble, Flag when needs_review (may NotHeld / NotJudged / NotArrived)."""
+        if self.cache is None or not self.icp_version_id:
+            return
+        if not result.get("confidence", {}).get("needs_review"):
+            return
+        if not hasattr(self.cache, "apply_command"):
+            return
+        from .workitem import Flag, judgement_from_result
+
+        self.cache.apply_command(lead_id, Flag(), judgement_from_result(self.icp_version_id, result))
 
     # ------------------------------------------------------------------ many leads
     def score_many(self, leads: list[Lead], workers: int = 4, on_result: ResultHook | None = None, on_error: ErrorHook | None = None,

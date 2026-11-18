@@ -1,0 +1,14 @@
+stateDiagram-v2
+  [*] --> Unreviewed: Arrived
+  Unreviewed --> Unreviewed: ReplyArrived
+  Unreviewed --> HeldForHuman: Flagged
+  Unreviewed --> Dismissed: Dismissed
+  Unreviewed --> QueuedForSequence: Queued
+  Unreviewed --> HandedToCloser: HandedOff
+  HeldForHuman --> Unreviewed: ReplyArrived
+  HeldForHuman --> Dismissed: Dismissed
+  HeldForHuman --> QueuedForSequence: Queued
+  HeldForHuman --> HandedToCloser: HandedOff
+  QueuedForSequence --> Unreviewed: ReplyArrived
+  HandedToCloser --> Unreviewed: ReplyArrived
+  Dismissed --> Unreviewed: ReplyArrived

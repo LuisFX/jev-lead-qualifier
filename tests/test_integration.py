@@ -1,5 +1,9 @@
 """Real TypeSafe API over the whole dataset. Skipped without a key.
 
+TEACHING NOTE: this suite spends money. It stays skipped until TYPESAFE_API_KEY
+wakes it. Answers go to a temp sqlite ledger, never data/firstread.sqlite.
+"""
+
     ./run.sh test-all            (or: uv run pytest -m integration -s)
 Cost: 65 requests ≈ 1.5 cents, plus a partial re-run for the added pain (≈ 0.2 cents).
 Uses a temporary cache so the numbers are fresh, never the demo cache in data/cache.
@@ -12,7 +16,7 @@ import copy
 import pytest
 
 from leadqualifier import config, icp as icp_mod
-from leadqualifier.cache import ResultCache
+from leadqualifier.ledger import Ledger
 from leadqualifier.leads import load_crm, load_gold, load_leads, load_playbook
 from leadqualifier.metrics import compute_metrics, format_table
 from leadqualifier.pipeline import Qualifier, run_totals
@@ -26,7 +30,7 @@ def run(tmp_path_factory):
         pytest.skip("TYPESAFE_API_KEY / JEV_API_KEY not set")
     icp = icp_mod.load_preset(config.DEFAULT_PRESET)
     leads = load_leads()
-    cache = ResultCache(tmp_path_factory.mktemp("cache") / "answers.json")
+    cache = Ledger(tmp_path_factory.mktemp("cache") / "answers.sqlite")
     qual = Qualifier(icp, load_crm(), load_playbook(), cache=cache)
     results = qual.score_many(leads, workers=config.workers())
     totals = run_totals(results, len(leads) - len(results), 0.0)
