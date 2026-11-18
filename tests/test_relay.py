@@ -10,7 +10,7 @@ from leadqualifier.hubspot import FakeWriter, properties_from_result
 from leadqualifier.ledger import get_ledger
 from leadqualifier.leads import load_leads
 from leadqualifier.relay import drain_once
-from leadqualifier.workitem import ApplyOk, Err, HandOff, IcpVersionId, Judged, Unjudged
+from leadqualifier.workitem import ApplyOk, Err, HandOff, IcpVersionId, Judged, Unjudged, voice_draft
 
 
 def _hot():
@@ -20,7 +20,7 @@ def _hot():
 def test_handoff_then_second_is_already_handed_off():
     load_leads()
     ledger = get_ledger()
-    first = ledger.apply_command("L001", HandOff(), _hot())
+    first = ledger.apply_command("L001", HandOff(voice_draft()), _hot())
     assert isinstance(first, ApplyOk)
     assert ledger.get_row("L001")["relay_kind"] == "pending"
     writer = FakeWriter()
@@ -37,7 +37,7 @@ def test_handoff_then_second_is_already_handed_off():
     out = drain_once(ledger, writer, {"L001": result})
     assert out["delivered"] == 1 and writer.calls[0]["properties"]["tier"] == "hot"
     assert ledger.get_row("L001")["relay_kind"] == "delivered"
-    second = ledger.apply_command("L001", HandOff(), _hot())
+    second = ledger.apply_command("L001", HandOff(voice_draft()), _hot())
     assert isinstance(second, Err) and second.error.kind == "already_handed_off"
     assert len(writer.calls) == 1
 

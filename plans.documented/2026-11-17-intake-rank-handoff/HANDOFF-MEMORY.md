@@ -31,7 +31,7 @@ Glance v1 is confirmed. The architecture is folded. The work-item oracle is 36 l
 
 **Next (owner, not this arc's code):** a paid Apollo plan (or a key whose team may call People Search). HubSpot write still needs `HUBSPOT_WRITE=1`, a token, and `HUBSPOT_TEST_CONTACT_ID` on a **test** contact. ts-013 stays 🟦.
 
-**This product still does not send mail or place calls.**
+**Sequencer binding lives in the later arc:** [comms-layer hub](../2026-11-18-comms-layer/HANDOFF-MEMORY.md). FakeComms is the default host. Instantly live send waits on `INSTANTLY_SEND=1`. Voice has no live vendor.
 
 ## Owner rulings
 

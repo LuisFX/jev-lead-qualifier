@@ -141,6 +141,11 @@ def test_flag_unjudged_is_409(client):
     assert r.status_code == 409 and r.json()["detail"]["refusal"] == "not_judged"
 
 
+def test_empty_reply_is_409(client):
+    r = client.post("/api/leads/L001/reply", json={"text": "  "})
+    assert r.status_code == 409 and r.json()["detail"]["refusal"] == "empty_reply"
+
+
 def test_dismiss_hides_contact(client):
     r = client.post("/api/leads/L001/command", json={"kind": "dismiss"})
     assert r.status_code == 200

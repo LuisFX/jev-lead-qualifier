@@ -2,11 +2,9 @@
 
 TEACHING NOTE: this suite spends money. It stays skipped until TYPESAFE_API_KEY
 wakes it. Answers go to a temp sqlite ledger, never data/firstread.sqlite.
-"""
-
-    ./run.sh test-all            (or: uv run pytest -m integration -s)
-Cost: 65 requests ≈ 1.5 cents, plus a partial re-run for the added pain (≈ 0.2 cents).
-Uses a temporary cache so the numbers are fresh, never the demo cache in data/cache.
+Run: ./run.sh test-all (or: uv run pytest -m integration -s).
+Cost: 65 requests, plus a partial re-run for the added pain.
+Uses a temporary cache so the numbers are fresh, never the demo cache.
 """
 
 from __future__ import annotations

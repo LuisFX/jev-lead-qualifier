@@ -1,7 +1,10 @@
 """FastAPI app: serves the single-page UI and a small JSON API. The API key stays server-side.
 
 TEACHING NOTE: HTTP commands become `Command`; a named refusal is 409 with the
-refusal kind. Draft POST /api/rescore does not mint an ICP version. CSV and
+refusal kind. Queue / HandOff drain `Bindings[draft.channel]`, never one global
+adapter. Paste and inbound are two hosts of `RecordReply`. Unknown inbound is
+409 `unknown_sender`; unknown paste id is 404 (unknown to the board).
+Draft POST /api/rescore does not mint an ICP version. CSV and
 People Search both `Arrive`. Contact is derived, never a column.
 
   GET  /                            the UI
@@ -26,6 +29,8 @@ People Search both `Arrive`. Contact is derived, never a column.
   POST /api/search                  People Search → Arrive (ApolloPerson)
   GET  /api/review                  HeldForHuman queue
   POST /api/leads/{id}/command      Flag | Dismiss | Queue | HandOff | RecordReply → 409 named refusal
+  POST /api/leads/{id}/reply        {text} → RecordReply of body, then rescore from the new message
+  POST /api/inbound                 vendor-blind InboundHint + text → match then RecordReply
 """
 
 from __future__ import annotations
@@ -55,13 +60,20 @@ from .leads import Lead, load_crm, load_gold, load_leads, load_playbook
 from .metrics import compute_metrics
 from .pipeline import Qualifier, run_totals
 from .relay import RelayLoop
+from .bindings import get_bindings
+from .comms import drain_outbound
+from .inbound import UnknownSender, decode_hint, match_inbound
 from .workitem import (
     Err,
     Nothing,
     Open,
     Unjudged,
     contact_json,
+    draft_for_handoff,
+    draft_for_queue,
+    encode_draft,
     judgement_from_result,
+    outbound_json,
     parse_command,
 )
 
@@ -192,6 +204,7 @@ def status() -> dict[str, Any]:
         "cache": {"leads": len(cache), **cache.history()}, "apollo": apollo.status(), "workers": config.workers(),
         "icp_version_id": icp_mod.live_version_id(),
         "hubspot": {"write": config.hubspot_write_enabled(), "has_token": config.hubspot_token() is not None},
+        "instantly": {"send": config.instantly_send_enabled(), "has_key": config.instantly_api_key() is not None},
         "review": len(get_ledger().list_held()),
     }
 
@@ -207,9 +220,11 @@ def _public_lead(lead: Lead) -> dict[str, Any]:
     if isinstance(state, Open):
         body["disposition"] = state.disposition.kind
         body["relay"] = state.relay.kind
+        body["outbound"] = outbound_json(state)
     else:
         body["disposition"] = "unreviewed"
         body["relay"] = "no_write"
+        body["outbound"] = {"kind": "no_send"}
     return body
 
 
@@ -532,20 +547,82 @@ class CommandBody(BaseModel):
     kind: str
     remote_id: str | None = None
     reason: str | None = None
+    text: str | None = None
 
 
 @app.post("/api/leads/{lead_id}/command")
 def lead_command(lead_id: str, body: CommandBody) -> dict[str, Any]:
     STATE.lead(lead_id)  # 404 if unknown to the board
-    try:
-        cmd = parse_command(body.kind, {"remote_id": body.remote_id, "reason": body.reason})
-    except ValueError as exc:
-        raise HTTPException(422, str(exc))
     lead = STATE.lead(lead_id)
     result = STATE.qualifier(with_client=False).rescore(lead)
     judgement = Unjudged() if result is None else judgement_from_result(icp_mod.live_version_id(), result)
+    if body.kind == "hand_off":
+        draft = draft_for_handoff(result)
+    else:
+        draft = draft_for_queue(result)
+    extra: dict[str, Any] = {
+        "remote_id": body.remote_id,
+        "reason": body.reason,
+        "text": body.text,
+        "draft": encode_draft(draft),
+    }
+    try:
+        cmd = parse_command(body.kind, extra)
+    except ValueError as exc:
+        raise HTTPException(422, str(exc))
     out = get_ledger().apply_command(lead_id, cmd, judgement)
     if isinstance(out, Err):
         raise HTTPException(409, {"refusal": out.error.kind})
+    if body.kind in ("queue", "hand_off"):
+        drain_outbound(get_ledger(), get_bindings())
+    if body.kind == "record_reply":
+        get_ledger().invalidate_item(lead_id)
+        STATE.leads = None
+        try:
+            scored = STATE.lead(lead_id)
+            STATE.qualifier(with_client=True).score(scored, use_cache=False)
+        except HTTPException:
+            pass
     STATE.leads = None
     return lead_detail(lead_id)
+
+
+def land_reply(work_item_id: str, text: str) -> dict[str, Any]:
+    """RecordReply of body, then rescore. Paste and inbound both land here."""
+    return lead_command(work_item_id, CommandBody(kind="record_reply", text=text))
+
+
+class ReplyBody(BaseModel):
+    text: str
+
+
+@app.post("/api/leads/{lead_id}/reply")
+def lead_reply(lead_id: str, body: ReplyBody) -> dict[str, Any]:
+    """Paste door: the URL already names the work item. Match is `/api/inbound`."""
+    STATE.lead(lead_id)
+    return land_reply(lead_id, body.text)
+
+
+class InboundHintBody(BaseModel):
+    kind: str
+    id: str | None = None
+    email: str | None = None
+    phone: str | None = None
+
+
+class InboundBody(BaseModel):
+    hint: InboundHintBody
+    text: str
+
+
+@app.post("/api/inbound")
+def inbound_reply(body: InboundBody) -> dict[str, Any]:
+    """InboundMatch then RecordReply. A named vendor file may POST here later."""
+    try:
+        hint = decode_hint(body.hint.model_dump())
+    except ValueError as exc:
+        raise HTTPException(422, str(exc))
+    found = match_inbound(get_ledger(), hint)
+    if isinstance(found, UnknownSender):
+        raise HTTPException(409, {"refusal": "unknown_sender"})
+    return land_reply(found.work_item_id, body.text)

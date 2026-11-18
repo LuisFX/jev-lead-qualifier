@@ -5,7 +5,8 @@
 <meta name="viewport" content="width=device-width, initial-scale=1">
 <title>First Read · Lanternfield Automation lead qualification</title>
 <!-- TEACHING NOTE: one HTML file, pages are sections. Hash routing lives in app.js.
-     Review, CSV intake, and lead commands are first-class pages/controls, not a second app. -->
+     Review, CSV intake, lead commands, and the reply box are first-class, not a second app.
+     Queue / Hand off authorize a send; FakeComms (or Instantly) is the other half. -->
 <meta name="color-scheme" content="light dark">
 <script>
   // Theme before first paint: URL ?theme > stored choice > OS preference.
@@ -168,8 +169,13 @@
       <button class="btn small" data-cmd="dismiss">Dismiss</button>
       <button class="btn small" data-cmd="queue">Queue sequence</button>
       <button class="btn small" data-cmd="hand_off">Hand off</button>
-      <button class="btn small" data-cmd="record_reply">Record a reply</button>
       <span class="meta" id="lead-disp"></span>
+  </div>
+  <div class="reply-row" id="reply-row">
+    <label class="field"><span>Inbound reply (pasted)</span>
+      <textarea id="reply-text" rows="2" placeholder="Paste the email or message that came back."></textarea>
+    </label>
+    <button class="btn small" id="btn-reply">Record reply</button>
   </div>
   <div class="empty card" id="lead-empty"><div class="empty-mark">¶</div><p>Choose a lead above or click a card on the Pipeline board.</p></div>
   <div class="grid-lead" id="lead-grid" hidden>

@@ -33,6 +33,7 @@ ALIASES = {
     "company": ("company", "company_name", "company name", "account", "organization"),
     "message": ("message", "body", "text", "note", "snippet"),
     "email": ("email", "e-mail", "e_mail"),
+    "phone": ("phone", "mobile", "tel"),
 }
 
 
@@ -56,7 +57,8 @@ def row_payload(raw: dict[str, str], work_item_id: str, import_id: str, row: int
     company = _cell(raw, *ALIASES["company"])
     message = _cell(raw, *ALIASES["message"])
     email = _cell(raw, *ALIASES["email"])
-    person = {k: v for k, v in (("name", name), ("title", title), ("email", email)) if v}
+    phone = _cell(raw, *ALIASES["phone"])
+    person = {k: v for k, v in (("name", name), ("title", title), ("email", email), ("phone", phone)) if v}
     company_d = {k: v for k, v in (("name", company), ("domain", domain)) if v}
     return {
         "id": work_item_id,

@@ -3,7 +3,8 @@
 TEACHING NOTE: a secret is a process-environment value. This module names the
 variables; it never prints them. `APOLLO_ENRICH` gates organisation enrich only.
 People Search gates on `APOLLO_API_KEY` alone. HubSpot write needs `HUBSPOT_WRITE=1`
-and a token. ⭐ ENFORCED BY: callers use these functions; 🔴 UNENFORCED: nothing
+and a token. Instantly send needs `INSTANTLY_SEND=1`, a key, and a campaign id.
+⭐ ENFORCED BY: callers use these functions; 🔴 UNENFORCED: nothing
 stops a caller from `os.environ.get` beside this file.
 """
 
@@ -68,6 +69,21 @@ def hubspot_write_enabled() -> bool:
 def hubspot_test_contact_id() -> str | None:
     v = os.environ.get("HUBSPOT_TEST_CONTACT_ID", "").strip()
     return v or None
+
+
+def instantly_api_key() -> str | None:
+    v = os.environ.get("INSTANTLY_API_KEY", "").strip()
+    return v if v and not v.startswith("your-") else None
+
+
+def instantly_campaign_id() -> str | None:
+    v = os.environ.get("INSTANTLY_CAMPAIGN_ID", "").strip()
+    return v or None
+
+
+def instantly_send_enabled() -> bool:
+    flag = os.environ.get("INSTANTLY_SEND", "").strip().lower()
+    return flag in ("1", "true", "yes", "on") and instantly_api_key() is not None and instantly_campaign_id() is not None
 
 
 def workers() -> int:

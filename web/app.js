@@ -4,6 +4,8 @@
    commands (`api(...)`) rather than mutating disposition in the page. Location
    is the hash: `#lead/{id}`, `#review`. Mode is Viewing | Reviewing. Contact
    is whatever the API derived (`contactOf`); the page never stores an email.
+   `seq` drops a stale HTTP reply. Outbound is the sequencer slot; Relay stays HubSpot.
+   The lead view shows Channel + Offer kind (copy, question, calendar, …), not a raw body.
    ⭐ ENFORCED BY: the lead/review API. 🔴 UNENFORCED: nothing typechecks this file.
 */
 (() => {
@@ -47,8 +49,40 @@
   const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
   const debounce = (fn, ms) => { let t; return (...a) => { clearTimeout(t); t = setTimeout(() => fn(...a), ms); }; };
 
+  const CHANNEL_OF = {
+    book_call: "voice",
+    send_case_study_agency: "email",
+    send_case_study_coach: "email",
+    ask_qualifying_question_size: "email",
+    ask_qualifying_question_pain: "email",
+    sms: "sms",
+    ringless_voicemail: "ringless_voicemail",
+  };
+  const OFFER_LABEL = {
+    copy: "copy",
+    qualifying_question: "question",
+    calendar: "calendar",
+    case_study: "case study",
+    form: "form",
+    decline_draft: "decline",
+  };
+  const offerWords = (offer) => {
+    if (!offer || !offer.kind) return "";
+    if (offer.kind === "calendar") return (offer.slots || []).join(" · ");
+    if (offer.kind === "case_study" || offer.kind === "form") return offer.url || "";
+    return offer.text || "";
+  };
+  const outboxLabel = (ob) => {
+    if (!ob || ob.kind === "no_send") return "no send";
+    if (ob.kind === "dispatched") return `sent ${ob.remote_id || ""}`;
+    if (ob.kind === "failed") return `failed ${ob.reason || ""}`;
+    const ch = (ob.draft && ob.draft.channel) || "";
+    const kind = (ob.draft && ob.draft.offer && ob.draft.offer.kind) || "";
+    const label = OFFER_LABEL[kind] || kind;
+    return `pending ${ch}${label ? " · " + label : ""}`;
+  };
   const state = { status: null, leads: [], leadsById: {}, results: {}, totals: null, metrics: null, icp: null, icpDraft: null, presets: [], playbook: null,
-                  currentLead: null, running: false, lastRun: null, evidenceOff: new Set(), filters: {}, mode: "viewing" };
+                  currentLead: null, running: false, lastRun: null, evidenceOff: new Set(), filters: {}, mode: "viewing", seq: 0 };
   const session = { cost: 0, requests: 0, latencies: [] };
 
   // ------------------------------------------------------------------ theme
@@ -286,8 +320,10 @@
     const { lead, result: r } = d;
     $("#lead-title").textContent = `${lead.company_name} — ${lead.person_name}`;
     $("#lead-sub").textContent = `${lead.source_label} · received ${lead.received_at.slice(0, 10)} · ${lead.shape === "message" ? "inbound message" : lead.shape === "bio" ? "executive bio" : "company profile"}${lead.tags?.length ? " · " + lead.tags.join(", ") : ""}`;
-    const contact = lead.contact?.kind === "revealed" ? lead.contact.address : "hidden";
-    if ($("#lead-disp")) $("#lead-disp").textContent = `${lead.disposition || "unreviewed"} · contact ${contact}`;
+    const contact = lead.contact?.kind === "revealed" ? (lead.contact.address || "revealed, no address") : "hidden";
+    const ob = lead.outbound || { kind: "no_send" };
+    const obLabel = outboxLabel(ob);
+    if ($("#lead-disp")) $("#lead-disp").textContent = `${lead.disposition || "unreviewed"} · contact ${contact} · ${obLabel}`;
     if (!r) {
       $("#lead-empty").hidden = false; $("#lead-grid").hidden = true;
       $("#lead-empty").innerHTML = `<div class="empty-mark">¶</div><p>${esc(lead.company_name)} has not been scored yet. Press <b>Score this lead now</b> (one Jev request) or run the whole pipeline.</p>`;
@@ -296,7 +332,7 @@
     $("#lead-empty").hidden = true; $("#lead-grid").hidden = false;
     if (!$("#lead-meta").textContent || !$("#lead-meta").textContent.startsWith("1 request")) $("#lead-meta").textContent = r.meta?.cached ? `served from cache · ${r.meta.n_questions} questions` : `${r.meta.n_asked} questions asked · ${r.meta.latency_ms} ms`;
     renderTierCard(lead, r); renderMessage(lead, r); renderCompany(lead, r); renderPerson(lead, r);
-    renderQuadrant(r); renderChecklist(r); renderDedupe(r); renderAction(r); renderAnswers(d);
+    renderQuadrant(r); renderChecklist(r); renderDedupe(r); renderAction(r, lead); renderAnswers(d);
   }
   function renderTierCard(lead, r) {
     const c = $("#tier-card"); c.setAttribute("data-tier", r.tier); c.innerHTML = "";
@@ -418,11 +454,21 @@
     list.append(el("div", { class: `cand${!r.existing_account ? " match" : ""}` }, el("span", { class: "nm" }, "none — a different company"), el("span", { class: "p" }, `P ${(probs.none ?? 0).toFixed(2)}`)));
     c.append(list);
   }
-  function renderAction(r) {
+  function renderAction(r, lead) {
     const c = $("#action-card"); c.innerHTML = "";
     const a = r.next_action;
-    c.append(el("div", { class: "card-head" }, el("div", {}, el("div", { class: "eyebrow" }, "Next best action · playbook"), el("h3", {}, a.label)), el("span", { class: "pill accent" }, a.source === "rule" ? "fixed by tier" : a.source === "jev" ? `Jev · ${a.jev_confidence.toFixed(2)}` : "Jev, constrained to tier")));
-    c.append(el("div", { class: "playbook" }, el("div", { class: "h" }, el("b", {}, a.label), el("span", { class: "muted small" }, r.tier === "disqualify" ? "draft — never auto-sent" : r.tier === "existing" ? "internal note" : "template filled in code")), el("div", {}, a.text)));
+    const draft = lead && lead.outbound && lead.outbound.draft;
+    const channel = (draft && draft.channel) || CHANNEL_OF[a.id] || "none";
+    const offer = draft && draft.offer;
+    const offerKind = offer ? (OFFER_LABEL[offer.kind] || offer.kind) : "";
+    c.append(el("div", { class: "card-head" }, el("div", {}, el("div", { class: "eyebrow" }, "Next best action · playbook"), el("h3", {}, a.label)), el("span", { class: "pill accent" }, offerKind ? `${channel} · ${offerKind}` : channel)));
+    const ob = (lead && lead.outbound) || { kind: "no_send" };
+    const sendNote = r.tier === "disqualify" ? "draft — never auto-sent" : r.tier === "existing" ? "internal note" : r.tier === "nurture" ? "nurture track · no personal send" : ob.kind === "dispatched" ? `sent · ${ob.remote_id}` : ob.kind === "failed" ? `not sent · ${ob.reason}` : ob.kind === "pending" ? "authorized, waiting to send" : "Queue or Hand off authorizes a send";
+    const shown = offer ? offerWords(offer) : a.text;
+    c.append(el("div", { class: "playbook" }, el("div", { class: "h" }, el("b", {}, offerKind ? `${OFFER_LABEL[offer.kind] || offer.kind}` : a.label), el("span", { class: "muted small" }, sendNote)), el("div", {}, shown)));
+    if (offer && offer.kind === "calendar" && offer.slots && offer.slots.length) {
+      c.append(el("div", { class: "slots", style: "margin-top:8px" }, ...offer.slots.map((s) => el("span", { class: "slot" }, s))));
+    }
     if (a.jev_choice && a.jev_choice !== a.id) c.append(el("p", { class: "small muted", style: "margin-top:8px" }, `Jev's unconstrained pick was “${title(a.jev_choice)}”; the tier's allowed actions override it.`));
     if (r.timeline.choice && r.timeline.choice !== "not_stated") c.append(el("p", { class: "small", style: "margin-top:8px" }, `Timeline stated: ${title(r.timeline.choice)} (${r.timeline.confidence.toFixed(2)})`));
   }
@@ -680,7 +726,7 @@
 
   // ------------------------------------------------------------------ connect
   const INPUTS = [["W", "Website forms", "Webhook from Typeform, Webflow, HubSpot forms or a plain HTML form — message + page context"], ["I", "Instantly · Apollo replies", "Reply webhooks from cold-email tools; the thread is the message, the export row is the profile"], ["L", "LinkedIn exports & DMs", "CSV exports of connections or Sales Navigator lists; DMs pasted or forwarded"], ["M", "Shared inbox (IMAP)", "hello@ / sales@ read-only; nothing marked as read"]];
-  const OUTPUTS = [["H", "HubSpot", "Hand off a Hot lead: tier, route, fit, intent, primary pain and next action go on a test contact (or a note on an existing company). Off until HubSpot write is switched on."], ["C", "Founder calendar", "Hot leads get two proposed slots (Cal.com / Calendly link) in the draft reply"], ["S", "SDR sequence A", "Warm leads enrolled in a 3-step sequence with the matching case study"], ["N", "Nurture & decline drafts", "Nurture list for the newsletter tool; decline templates saved as drafts, never auto-sent"]];
+  const OUTPUTS = [["H", "HubSpot", "Hand off a Hot lead: tier, route, fit, intent, primary pain and next action go on a test contact (or a note on an existing company). Off until HubSpot write is switched on."], ["C", "Founder call draft", "Hot leads get two proposed slots in the Voice draft. A dialer is not bound; FakeComms records the authorize."], ["S", "Email sequence", "Queue a warm lead: FakeComms records the send. Instantly is off until INSTANTLY_SEND=1."], ["N", "Nurture & decline drafts", "Nurture is a decision with no personal send. Decline stays a draft a human glances."]];
   function renderConnect() {
     const inp = $("#connect-inputs"); inp.innerHTML = ""; for (const [ic, nm, ds] of INPUTS) inp.append(el("div", { class: "connector" }, el("span", { class: "ic" }, ic), el("div", {}, el("div", { class: "nm" }, nm), el("div", { class: "ds" }, ds)), el("span", { class: "pill" }, "webhook · CSV")));
     const out = $("#connect-outputs"); out.innerHTML = ""; for (const [ic, nm, ds] of OUTPUTS) out.append(el("div", { class: "connector" }, el("span", { class: "ic" }, ic), el("div", {}, el("div", { class: "nm" }, nm), el("div", { class: "ds" }, ds)), el("span", { class: "pill" }, "API")));
@@ -688,7 +734,8 @@
     const ap = s.apollo || {}; const pill = $("#apollo-pill"); pill.className = "pill " + (ap.enabled ? "good" : ""); pill.textContent = ap.enabled ? `enabled · ${ap.cached} cached` : ap.has_key ? "key present · flag off (APOLLO_ENRICH=1)" : "off — no key";
     $("#btn-apollo").disabled = !ap.enabled;
     const kv = $("#connect-kv"); kv.innerHTML = "";
-    kv.append(kvNode("Model", s.model, "mono"), kvNode("Endpoint", "api.typesafe.ai/v1/systemone", "mono"), kvNode("API key", s.jev_key ? "set (server-side only)" : "missing"), kvNode("Price", `$${s.price_per_m} / M input tokens · output free`), kvNode("Answers cached", `${s.cache?.leads ?? 0} leads · ${s.cache?.requests ?? 0} requests`), kvNode("Workers", `${s.workers} parallel requests`));
+    const inst = s.instantly || {};
+    kv.append(kvNode("Model", s.model, "mono"), kvNode("Endpoint", "api.typesafe.ai/v1/systemone", "mono"), kvNode("API key", s.jev_key ? "set (server-side only)" : "missing"), kvNode("Price", `$${s.price_per_m} / M input tokens · output free`), kvNode("Answers cached", `${s.cache?.leads ?? 0} leads · ${s.cache?.requests ?? 0} requests`), kvNode("Workers", `${s.workers} parallel requests`), kvNode("Instantly", inst.send ? "send on" : inst.has_key ? "key present · INSTANTLY_SEND off" : "FakeComms"));
   }
   $("#btn-apollo").addEventListener("click", async () => {
     const btn = $("#btn-apollo"); busy(btn, true); const out = $("#apollo-result"); out.innerHTML = "";
@@ -708,14 +755,31 @@
 
   async function sendCommand(kind) {
     if (!state.currentLead) return;
+    const seq = ++state.seq;
     try {
       const d = await api(`/api/leads/${state.currentLead}/command`, { method: "POST", body: JSON.stringify({ kind }) });
+      if (seq !== state.seq) return;
       renderLead(d);
-      toast(`${kind.replace("_", " ")} · ${d.lead.disposition}`);
+      const ob = d.lead.outbound || {};
+      const extra = ob.kind === "dispatched" ? ` · sent ${ob.remote_id}` : ob.kind === "failed" ? ` · ${ob.reason}` : "";
+      toast(`${kind.replace("_", " ")} · ${d.lead.disposition}${extra}`);
       if (state.mode === "reviewing") loadReview();
-    } catch (e) { toast(e.message, true); }
+    } catch (e) { if (seq === state.seq) toast(e.message, true); }
   }
   $$("#lead-commands [data-cmd]").forEach((b) => b.addEventListener("click", () => sendCommand(b.dataset.cmd)));
+  const btnReply = $("#btn-reply");
+  if (btnReply) btnReply.addEventListener("click", async () => {
+    if (!state.currentLead) return;
+    const text = ($("#reply-text") && $("#reply-text").value) || "";
+    const seq = ++state.seq;
+    try {
+      const d = await api(`/api/leads/${state.currentLead}/reply`, { method: "POST", body: JSON.stringify({ text }) });
+      if (seq !== state.seq) return;
+      if ($("#reply-text")) $("#reply-text").value = "";
+      renderLead(d);
+      toast(`reply · ${d.lead.disposition}`);
+    } catch (e) { if (seq === state.seq) toast(e.message, true); }
+  });
 
   async function loadReview() {
     const d = await api("/api/review");

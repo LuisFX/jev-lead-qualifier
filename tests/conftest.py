@@ -30,9 +30,11 @@ def isolate_files(tmp_path, monkeypatch):
     monkeypatch.setattr(config, "SQLITE_PATH", tmp_path / "firstread.sqlite")
     monkeypatch.delenv("APOLLO_ENRICH", raising=False)
     monkeypatch.setenv("FIRSTREAD_RELAY", "0")
+    from leadqualifier.bindings import reset_bindings_for_tests
     from leadqualifier.ledger import reset_ledger_for_tests
 
     reset_ledger_for_tests(tmp_path / "firstread.sqlite")
+    reset_bindings_for_tests()
     yield
 
 

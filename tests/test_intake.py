@@ -30,6 +30,18 @@ def test_csv_three_rows_then_already_arrived():
     assert set(r["inserted"]) <= ids
 
 
+def test_csv_maps_email_and_phone():
+    r = arrive_csv(
+        get_ledger(),
+        "name,domain,email,phone,message\nAda,a.de,ada@secret.test,+4940123,Hi\n",
+        "phone-1",
+    )
+    wid = r["inserted"][0]
+    payload = __import__("json").loads(get_ledger().get_row(wid)["payload_json"])
+    assert payload["person"]["email"] == "ada@secret.test"
+    assert payload["person"]["phone"] == "+4940123"
+
+
 def test_search_filters_from_icp(icp):
     f = filters_payload(icp)
     assert f["titles"]

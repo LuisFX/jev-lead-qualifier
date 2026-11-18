@@ -1,9 +1,9 @@
 """Outbox worker: pending HubSpot writes become MarkDelivered or MarkFailed.
 
 TEACHING NOTE: HandOff of Hot already emits RelayPending (L14). This loop is
-the other half. Idempotent on work item + ICP version: a second HandOff is
-`already_handed_off` and never reaches here. The worker is a thread in the
-same process, not a second service.
+the other half: HubSpot `Writer` and `Bindings` drain. Idempotent on work
+item + ICP version: a second HandOff is `already_handed_off` and never
+reaches here. The worker is a thread in the same process, not a second service.
 
 ⭐ ENFORCED BY: `tests/test_relay.py`.
 """
@@ -16,6 +16,8 @@ import threading
 import time
 from typing import Any
 
+from .bindings import get_bindings
+from .comms import Bindings, drain_outbound
 from .hubspot import FakeWriter, HubSpotWriter, Writer
 from .leads import lead_from_payload
 from .workitem import MarkDelivered, MarkFailed, Unjudged
@@ -75,9 +77,10 @@ def default_writer() -> Writer:
 
 
 class RelayLoop:
-    def __init__(self, ledger, writer: Writer | None = None, interval_s: float = 2.0):
+    def __init__(self, ledger, writer: Writer | None = None, bindings: Bindings | None = None, interval_s: float = 2.0):
         self.ledger = ledger
         self.writer = writer or default_writer()
+        self.bindings = bindings if bindings is not None else get_bindings()
         self.interval_s = interval_s
         self.stop = threading.Event()
         self.thread: threading.Thread | None = None
@@ -92,6 +95,7 @@ class RelayLoop:
         while not self.stop.wait(self.interval_s):
             try:
                 drain_once(self.ledger, self.writer)
+                drain_outbound(self.ledger, self.bindings)
             except Exception as exc:
                 log.warning("relay loop: %s", exc)
                 time.sleep(self.interval_s)

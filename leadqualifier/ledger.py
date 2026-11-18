@@ -5,8 +5,10 @@ and SQLite — `cache.py` is gone. `store` COMMITS; a new connection must see th
 row. The snapshot on `work_item` is a fold of `work_item_event`, written in the
 same transaction as the append.
 
-What this does not do: talk to Jev, HubSpot, or Apollo. Ports sit in their
-modules and call `apply_command` / `put_answer`.
+What this does not do: talk to Jev, HubSpot, Apollo, or a sequencer vendor. Ports
+sit in their modules and call `apply_command` / `put_answer`. Sequencer state lives
+in `outbound_*` columns, not `relay_*`. Pending drafts store `outbound_offer_kind`
++ `outbound_offer_json`. The decoder does not read leftover `outbound_body`.
 
 ⭐ ENFORCED BY: `tests/test_ledger.py` (persist-then-reconnect; seed 65 idempotent).
 """
@@ -25,24 +27,34 @@ from .workitem import (
     ApplyOk,
     Arrival,
     Arrived,
+    Awaiting,
     Command,
+    Dispatched,
     Err,
     Event,
     Flagged,
     HandedOff,
     Nothing,
     Open,
+    OutboundDispatched,
+    OutboundFailed,
+    OutboundPending,
     PersonDismissed,
     Queued,
     RelayDelivered,
     RelayFailed,
     RelayPending,
     ReplyArrived,
+    SendFailed,
     State,
     apply,
     decode_arrival,
     decode_disposition,
+    decode_draft,
+    decode_outbound,
     decode_relay,
+    encode_draft,
+    encode_offer,
     fold,
 )
 
@@ -63,14 +75,20 @@ def encode_event(event: Event) -> tuple[str, dict[str, Any]]:
             return "queued", {}
         case HandedOff():
             return "handed_off", {}
-        case ReplyArrived():
-            return "reply_arrived", {}
+        case ReplyArrived(body=body):
+            return "reply_arrived", {"body": body}
         case RelayPending():
             return "relay_pending", {}
         case RelayDelivered(remote_id=remote_id):
             return "relay_delivered", {"remote_id": remote_id}
         case RelayFailed(reason=reason):
             return "relay_failed", {"reason": reason}
+        case OutboundPending(draft=draft):
+            return "outbound_pending", encode_draft(draft)
+        case OutboundDispatched(remote_id=remote_id):
+            return "outbound_dispatched", {"remote_id": remote_id}
+        case OutboundFailed(reason=reason):
+            return "outbound_failed", {"reason": reason}
         case _:
             raise AssertionError(f"unhandled event {event!r}")
 
@@ -88,13 +106,19 @@ def decode_event(kind: str, body: dict[str, Any]) -> Event:
     if kind == "handed_off":
         return HandedOff()
     if kind == "reply_arrived":
-        return ReplyArrived()
+        return ReplyArrived(str(body.get("body") or ""))
     if kind == "relay_pending":
         return RelayPending()
     if kind == "relay_delivered":
         return RelayDelivered(body["remote_id"])
     if kind == "relay_failed":
         return RelayFailed(body["reason"])
+    if kind == "outbound_pending":
+        return OutboundPending(decode_draft(body))
+    if kind == "outbound_dispatched":
+        return OutboundDispatched(body["remote_id"])
+    if kind == "outbound_failed":
+        return OutboundFailed(body["reason"])
     raise ValueError(f"event.kind={kind!r}")
 
 
@@ -117,6 +141,32 @@ def _relay_cols(state: State) -> dict[str, Any]:
         "relay_remote_id": getattr(r, "remote_id", None),
         "relay_reason": getattr(r, "reason", None),
     }
+
+
+def _outbound_cols(state: State) -> dict[str, Any]:
+    o = state.outbound
+    draft = o.draft if isinstance(o, Awaiting) else None
+    return {
+        "outbound_kind": o.kind,
+        "outbound_channel": draft.channel.kind if draft else None,
+        "outbound_offer_kind": draft.offer.kind if draft else None,
+        "outbound_offer_json": json.dumps(encode_offer(draft.offer), ensure_ascii=False) if draft else None,
+        "outbound_remote_id": getattr(o, "remote_id", None) if isinstance(o, Dispatched) else None,
+        "outbound_reason": getattr(o, "reason", None) if isinstance(o, SendFailed) else None,
+    }
+
+
+def _fold_reply_payload(payload: dict[str, Any], body: str) -> dict[str, Any]:
+    """The inbound text becomes the message the rank scores. Prior text is kept."""
+    prior = payload.get("message") if isinstance(payload.get("message"), dict) else {}
+    prior_text = prior.get("text") if isinstance(prior, dict) else None
+    message = dict(prior) if isinstance(prior, dict) else {}
+    message["text"] = body
+    if prior_text:
+        message["prior"] = prior_text
+    out = dict(payload)
+    out["message"] = message
+    return out
 
 
 class Ledger:
@@ -236,6 +286,14 @@ class Ledger:
             "latency_mean_ms": (sum(latencies) / len(latencies)) if latencies else None,
         }
 
+    def invalidate_item(self, work_item_id: str) -> int:
+        """Drop cached answers for one work item so a new message is scored fresh."""
+        with self._lock:
+            cur = self._conn.execute("DELETE FROM answer WHERE work_item_id = ?", (work_item_id,))
+            removed = cur.rowcount
+            self._conn.commit()
+        return removed
+
     def invalidate(self, question_ids: list[str] | None = None) -> int:
         with self._lock:
             if question_ids is None:
@@ -320,6 +378,13 @@ class Ledger:
             ).fetchall()
         return [dict(r) for r in rows]
 
+    def list_pending_outbound(self) -> list[dict[str, Any]]:
+        with self._lock:
+            rows = self._conn.execute(
+                "SELECT * FROM work_item WHERE outbound_kind = 'pending' ORDER BY id"
+            ).fetchall()
+        return [dict(r) for r in rows]
+
     def apply_command(
         self,
         work_item_id: str,
@@ -338,14 +403,18 @@ class Ledger:
         assert isinstance(new_state, Open)
         arrival_cols = _arrival_cols(new_state.arrival)
         relay_cols = _relay_cols(new_state)
+        outbound_cols = _outbound_cols(new_state)
+        reply_body = next((e.body for e in decided.events if isinstance(e, ReplyArrived)), None)
         with self._lock:
             existing = self._conn.execute("SELECT payload_json, created_at, id FROM work_item WHERE id = ?", (work_item_id,)).fetchone()
             if existing is None:
                 body = json.dumps(payload or {"id": work_item_id}, ensure_ascii=False)
                 self._conn.execute(
                     """INSERT INTO work_item(id, arrival_kind, person_id, import_id, import_row, disposition,
-                       relay_kind, relay_remote_id, relay_reason, payload_json, created_at)
-                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
+                       relay_kind, relay_remote_id, relay_reason,
+                       outbound_kind, outbound_channel, outbound_offer_kind, outbound_offer_json, outbound_remote_id, outbound_reason,
+                       payload_json, created_at)
+                       VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)""",
                     (
                         work_item_id,
                         arrival_cols["arrival_kind"],
@@ -356,6 +425,12 @@ class Ledger:
                         relay_cols["relay_kind"],
                         relay_cols["relay_remote_id"],
                         relay_cols["relay_reason"],
+                        outbound_cols["outbound_kind"],
+                        outbound_cols["outbound_channel"],
+                        outbound_cols["outbound_offer_kind"],
+                        outbound_cols["outbound_offer_json"],
+                        outbound_cols["outbound_remote_id"],
+                        outbound_cols["outbound_reason"],
                         body,
                         at,
                     ),
@@ -366,14 +441,29 @@ class Ledger:
                     "SELECT COALESCE(MAX(seq), 0) AS n FROM work_item_event WHERE work_item_id = ?",
                     (work_item_id,),
                 ).fetchone()["n"]
+                payload_json = existing["payload_json"]
+                if reply_body is not None:
+                    payload_json = json.dumps(
+                        _fold_reply_payload(json.loads(payload_json), reply_body),
+                        ensure_ascii=False,
+                    )
                 self._conn.execute(
-                    """UPDATE work_item SET disposition=?, relay_kind=?, relay_remote_id=?, relay_reason=?
+                    """UPDATE work_item SET disposition=?, relay_kind=?, relay_remote_id=?, relay_reason=?,
+                       outbound_kind=?, outbound_channel=?, outbound_offer_kind=?, outbound_offer_json=?,
+                       outbound_remote_id=?, outbound_reason=?, payload_json=?
                        WHERE id=?""",
                     (
                         new_state.disposition.kind,
                         relay_cols["relay_kind"],
                         relay_cols["relay_remote_id"],
                         relay_cols["relay_reason"],
+                        outbound_cols["outbound_kind"],
+                        outbound_cols["outbound_channel"],
+                        outbound_cols["outbound_offer_kind"],
+                        outbound_cols["outbound_offer_json"],
+                        outbound_cols["outbound_remote_id"],
+                        outbound_cols["outbound_reason"],
+                        payload_json,
                         work_item_id,
                     ),
                 )
@@ -409,6 +499,14 @@ class Ledger:
             arrival=arrival,
             disposition=decode_disposition(row["disposition"]),
             relay=decode_relay(row["relay_kind"], row["relay_remote_id"], row["relay_reason"]),
+            outbound=decode_outbound(
+                row.get("outbound_kind") or "no_send",
+                row.get("outbound_channel"),
+                row.get("outbound_offer_kind"),
+                row.get("outbound_offer_json"),
+                row.get("outbound_remote_id"),
+                row.get("outbound_reason"),
+            ),
         )
 
     # --- ICP versions ---------------------------------------------------------
