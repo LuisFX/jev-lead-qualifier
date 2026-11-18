@@ -3,9 +3,9 @@
 TEACHING NOTE: a secret is a process-environment value. This module names the
 variables; it never prints them. `APOLLO_ENRICH` gates organisation enrich only.
 People Search gates on `APOLLO_API_KEY` alone. HubSpot write needs `HUBSPOT_WRITE=1`
-and a token. Email-plugin **ready** is key + campaign id. Occupancy is a sqlite
-mount, not `INSTANTLY_SEND`. `instantly_send_enabled` remains for the skipped
-live probe only — composition does not read it.
+and a token. Email-plugin **ready** is key + campaign id. SMS/Voice ready is Twilio SID +
+token + from-number. Occupancy is a sqlite mount. Live Email skip is key +
+campaign + `INSTANTLY_TEST_EMAIL`. Composition does not read a send flag.
 ⭐ ENFORCED BY: callers use these functions; 🔴 UNENFORCED: nothing
 stops a caller from `os.environ.get` beside this file.
 """
@@ -83,9 +83,24 @@ def instantly_campaign_id() -> str | None:
     return v or None
 
 
-def instantly_send_enabled() -> bool:
-    flag = os.environ.get("INSTANTLY_SEND", "").strip().lower()
-    return flag in ("1", "true", "yes", "on") and instantly_api_key() is not None and instantly_campaign_id() is not None
+def instantly_test_email() -> str | None:
+    v = os.environ.get("INSTANTLY_TEST_EMAIL", "").strip()
+    return v or None
+
+
+def twilio_account_sid() -> str | None:
+    v = os.environ.get("TWILIO_ACCOUNT_SID", "").strip()
+    return v if v and not v.startswith("your-") else None
+
+
+def twilio_auth_token() -> str | None:
+    v = os.environ.get("TWILIO_AUTH_TOKEN", "").strip()
+    return v if v and not v.startswith("your-") else None
+
+
+def twilio_from_number() -> str | None:
+    v = os.environ.get("TWILIO_FROM_NUMBER", "").strip()
+    return v or None
 
 
 def workers() -> int:

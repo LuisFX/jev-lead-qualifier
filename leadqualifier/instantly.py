@@ -6,7 +6,8 @@ channels. Occupancy is a mount, not an env boolean. A missing map key is
 `channel_unbound` in `comms.py`, not here.
 
 ⭐ ENFORCED BY: `tests/test_bindings.py` (this file names Email only);
-`tests/test_comms.py` mocked POST. Live send is skipped unless INSTANTLY_SEND=1.
+`tests/test_comms.py` mocked POST. Live send is skipped unless key + campaign
++ INSTANTLY_TEST_EMAIL are present.
 """
 
 from __future__ import annotations

@@ -100,6 +100,13 @@ CREATE TABLE IF NOT EXISTS comms_mount (
   )),
   plugin_id TEXT NOT NULL CHECK (plugin_id != '')
 );
+
+CREATE TABLE IF NOT EXISTS comms_receive (
+  channel TEXT PRIMARY KEY CHECK (channel IN (
+    'email', 'linkedin', 'voice', 'sms', 'ringless_voicemail'
+  )),
+  plugin_id TEXT NOT NULL CHECK (plugin_id != '')
+);
 """
 
 

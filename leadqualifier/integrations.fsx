@@ -3,9 +3,10 @@
 
   Queue / HandOff still authorize. Another app still sends. The operator
   mounts a PluginId onto a Channel slot. Unmounted is Fake. Mounted is a
-  plugin that declares Send of that channel. Two plugins on one slot is
+  plugin that declares Send of that channel. Receive of a Channel is not
+  an Out slot: a second occupancy map. Two plugins on one slot is
   unspeakable (one Mount per Channel). A plugin that only sends Email
-  cannot occupy Voice.
+  cannot occupy Voice. Voice receive candidates are empty this arc.
 
   This file loads nothing. Channel is the same five arms as workitem.fsx;
   that file exits, so this one does not #load it. A rename of an arm must
@@ -31,9 +32,13 @@ type Channel =
     | Sms
     | RinglessVoicemail
 
-type Direction = Out
+type Direction =
+    | Out
+    | In
 
-type Capability = Send of Channel
+type Capability =
+    | Send of Channel
+    | Receive of Channel
 
 type PluginId = PluginId of string
 
@@ -43,7 +48,7 @@ type Mount =
     | Unmounted
     | Mounted of PluginId
 
-type Mounts = Map<Channel, Mount>
+type Mounts = Map<Channel, Mount> // Out occupancy. Receive is a second map.
 
 type ComposeError =
     | UnknownPlugin
@@ -78,10 +83,24 @@ let candidates (catalog: Catalog) (ch: Channel) : PluginId list =
     |> Map.toList
     |> List.choose (fun (pid, caps) -> if Set.contains (Send ch) caps then Some pid else None)
 
+let receiveCandidates (catalog: Catalog) (ch: Channel) : PluginId list =
+    catalog
+    |> Map.toList
+    |> List.choose (fun (pid, caps) -> if Set.contains (Receive ch) caps then Some pid else None)
+
 let emailPlugin = PluginId "email-plugin"
+let smsPlugin = PluginId "sms-plugin"
+let voicePlugin = PluginId "voice-plugin"
 
 let catalog: Catalog =
-    Map.ofList [ emailPlugin, set [ Send Email ] ]
+    Map.ofList
+        [ emailPlugin, set [ Send Email; Receive Email ]
+          smsPlugin, set [ Send Sms ]
+          voicePlugin, set [ Send Voice ] ]
+
+// Direction names the two occupancies. compose is Out only.
+let composeIsOut = Out
+let receiveIsIn = In
 
 let emptyMounts: Mounts = Map.empty
 
@@ -147,7 +166,7 @@ try
          && Map.find Voice b5a = "fake"
          && Map.find Voice b5b = "fake")
 
-    // L6 two catalog entries: Email plugin cannot appear in Voice candidates.
+    // L6 Email plugin cannot appear in Voice candidates even when Voice has a plugin.
     let other = PluginId "other-plugin"
     let two: Catalog =
         Map.ofList
@@ -155,11 +174,40 @@ try
               other, set [ Send LinkedIn ] ]
     law
         6
-        "voice-candidates-empty"
-        (candidates catalog Voice = []
-         && candidates catalog Email = [ emailPlugin ]
+        "email-plugin-not-voice-candidate"
+        (candidates catalog Email = [ emailPlugin ]
+         && not (List.contains emailPlugin (candidates catalog Voice))
          && candidates two Voice = []
          && not (List.contains emailPlugin (candidates two Voice)))
+
+    // L7 voice-plugin Voice candidates nonempty; Email plugin still cannot occupy Voice.
+    compose catalog (Map.ofList [ Voice, Mounted emailPlugin ])
+    |> mustErr "L7" CapabilityMismatch
+    law
+        7
+        "voice-plugin-candidates"
+        (candidates catalog Voice = [ voicePlugin ]
+         && composeIsOut = Out)
+
+    // L8 Receive Email candidates nonempty; Voice receive empty.
+    law
+        8
+        "receive-email-not-voice"
+        (receiveCandidates catalog Email = [ emailPlugin ]
+         && receiveCandidates catalog Voice = []
+         && receiveIsIn = In)
+
+    // L9 Email plugin on Sms is CapabilityMismatch.
+    compose catalog (Map.ofList [ Sms, Mounted emailPlugin ])
+    |> mustErr "L9" CapabilityMismatch
+    law 9 "email-plugin-on-sms-mismatch" true
+
+    // L10 sms-plugin on Sms composes; Voice stays Fake.
+    let b10 = compose catalog (Map.ofList [ Sms, Mounted smsPlugin ]) |> mustOk "L10"
+    law
+        10
+        "sms-plugin-on-sms-voice-fake"
+        (Map.find Sms b10 = "sms-plugin" && Map.find Voice b10 = "fake")
 
 with ex ->
     failed.Value <- failed.Value + 1

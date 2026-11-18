@@ -11,7 +11,9 @@ Relay is HubSpot. Outbound is the sequencer / dialer / SMS / RVM slot (F#
 `Pending`). Draft is `{ Channel, Offer }`. Queue of Warm/Hot emits `Queued`
 then `OutboundPending`. Queue of Nurture is a decision with `NoSend`.
 RecordReply of whitespace is `empty_reply`. Empty Offer is `empty_draft`.
-Nonempty `DeclineDraft` is `not_sendable`.
+Queue / HandOff of nonempty `DeclineDraft` is `not_sendable`. `SendDecline`
+of Disqualify emits `PersonDismissed` then `OutboundPending`. Contact stays
+Hidden on Dismissed.
 
 ⭐ ENFORCED BY: `leadqualifier/workitem.fsx` (the law floor) and `tests/test_workitem.py`
 (the same laws, ported). A host that skips `decide` and writes a column is a defect.
@@ -534,6 +536,12 @@ def draft_for_queue(result: dict[str, Any] | None) -> Draft:
     return d
 
 
+def draft_for_send_decline(result: dict[str, Any] | None) -> Draft:
+    """SendDecline authorizes Email + DeclineDraft of the playbook polite decline."""
+    action = (result or {}).get("next_action") or {}
+    return Draft(Email(), DeclineDraft(_action_text(action)))
+
+
 def draft_for_handoff(result: dict[str, Any] | None) -> Draft:
     """HandOff authorizes Voice + Calendar of the founder slots, plus HubSpot relay.
 
@@ -617,6 +625,12 @@ class HandOff:
 
 
 @dataclass(frozen=True)
+class SendDecline:
+    draft: Draft
+    kind: Literal["send_decline"] = "send_decline"
+
+
+@dataclass(frozen=True)
 class RecordReply:
     body: str
     kind: Literal["record_reply"] = "record_reply"
@@ -652,6 +666,7 @@ Command = (
     | Dismiss
     | Queue
     | HandOff
+    | SendDecline
     | RecordReply
     | MarkDelivered
     | MarkFailed
@@ -911,6 +926,23 @@ def decide(cmd: Command, state: State, judgement: Judgement) -> EventsOk | Err:
             return _err("already_handed_off")
         return _err("not_handoffable")
 
+    if isinstance(cmd, SendDecline):
+        if isinstance(state, Nothing):
+            return _err("not_arrived")
+        if isinstance(state.disposition, (Unreviewed, HeldForHuman)):
+            if isinstance(judgement, Unjudged):
+                return _err("not_judged")
+            if judgement.tier == "disqualify":
+                if empty_draft(cmd.draft):
+                    return _err("empty_draft")
+                if decline_not_sent(cmd.draft.offer):
+                    return _ok(PersonDismissed(), OutboundPending(cmd.draft))
+                return _err("not_sendable")
+            return _err("not_sequenceable")
+        if isinstance(state.disposition, Dismissed):
+            return _err("already_dismissed")
+        return _err("not_dismissable")
+
     if isinstance(cmd, RecordReply):
         if isinstance(state, Nothing):
             return _err("not_arrived")
@@ -1040,6 +1072,8 @@ def parse_command(kind: str, body: dict | None = None) -> Command:
         return Queue(decode_draft(body.get("draft") if isinstance(body.get("draft"), dict) else None))
     if kind == "hand_off":
         return HandOff(decode_draft(body.get("draft") if isinstance(body.get("draft"), dict) else None))
+    if kind == "send_decline":
+        return SendDecline(decode_draft(body.get("draft") if isinstance(body.get("draft"), dict) else None))
     if kind == "record_reply":
         return RecordReply(str(body.get("text") or ""))
     if kind == "mark_delivered":

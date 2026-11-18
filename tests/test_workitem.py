@@ -41,12 +41,14 @@ from leadqualifier.workitem import (
     Open,
     OutboundPending,
     Pending,
+    PersonDismissed,
     PersonId,
     QualifyingQuestion,
     Queue,
     Queued,
     QueuedForSequence,
     RecordReply,
+    SendDecline,
     Revealed,
     RinglessVoicemail,
     SearchFilters,
@@ -408,6 +410,42 @@ def test_l55_decline_blank():
 def test_l56_decline_not_sent():
     err(Queue(decline_draft()), born(), judged_warm, "not_sendable")
     err(HandOff(decline_draft()), born(), judged_hot, "not_sendable")
+
+
+def test_l69_send_decline_disqualify():
+    r = ok(SendDecline(decline_draft()), born(), judged_dq)
+    assert isinstance(r.state.disposition, Dismissed)
+    assert isinstance(r.state.outbound, Awaiting)
+    assert r.state.outbound.draft == decline_draft()
+    assert r.events == (PersonDismissed(), OutboundPending(decline_draft()))
+
+
+def test_l70_send_decline_empty():
+    err(SendDecline(Draft(Email(), DeclineDraft(""))), born(), judged_dq, "empty_draft")
+
+
+def test_l71_send_decline_copy_not_sendable():
+    err(SendDecline(email_draft()), born(), judged_dq, "not_sendable")
+
+
+def test_l72_send_decline_warm_not_sequenceable():
+    err(SendDecline(decline_draft()), born(), judged_warm, "not_sequenceable")
+
+
+def test_l73_send_decline_already_dismissed():
+    s = ok(Dismiss(), born(), judged_dq).state
+    err(SendDecline(decline_draft()), s, judged_dq, "already_dismissed")
+
+
+def test_l74_send_decline_contact_hidden():
+    r = ok(SendDecline(decline_draft()), born(), judged_dq)
+    assert isinstance(contact_of(r.state), Hidden)
+
+
+def test_l75_send_decline_outbound_pending():
+    r = ok(SendDecline(decline_draft()), born(), judged_dq)
+    assert isinstance(r.state.outbound, Awaiting)
+    assert r.state.outbound.draft == decline_draft()
 
 
 def test_offer_for_action_uses_playbook_ids():

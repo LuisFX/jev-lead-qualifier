@@ -23,13 +23,13 @@ Parent arc (intake, rank, handoff): [hub](../2026-11-17-intake-rank-handoff/HAND
 
 This product still decides. It does not own Gmail, Twilio, Instantly, or a dialer. `QueuedForSequence` and `HandedToCloser` become `OutboundPending` of a `Draft`. Unmounted is Fake. Mounted is a plugin that declares `Send` of that channel. A reply is `RecordReply` of a non-empty body on the same work item.
 
-Glance **v3** is the shape: `Channel`, `Offer`, `Catalog`, `Mounts`, `compose`, `InboundMatch`. Glance v2 left composition as `INSTANTLY_SEND` and Connect as brochure. Glance v1 named Instantly as a destination; that ticket (cl-007) is retired.
+Glance **v4** is the shape: `Channel`, `Offer`, `SendDecline`, `Capability = Send | Receive`, catalog files, `InboundMatch`. Glance v3 left SendDecline, Receive, Twilio, and live Email open. Glance v2 left composition as `INSTANTLY_SEND`. Glance v1 named Instantly as a destination; that ticket (cl-007) is retired.
 
 ## ⭐ RESUME HERE
 
-2026-11-18. Wave 8 built: catalog, sqlite mounts, compose, Connect board. `architecture_settled: true` after Fake Connect smoke `:8786`. cl-012–014 done together. cl-007 ⚠️. Remaining opens are operational (live Email POST on a test address, Voice/SMS catalog rows, Form/CaseStudy URLs, `SendDecline`, Receive plugins).
+2026-11-18. Waves 9–12 built. Glance v4 live. Live Instantly POST skipped: campaign id absent (key and test email present; lengths only). Live Twilio skipped: SID/token/from absent. LinkedIn Instantly absent; Twilio RVM forbidden; playbook 0 URLs. `architecture_settled: true`. cl-007 ⚠️.
 
-**Do not** reopen cl-007 to "finish Instantly." Live Instantly on a test address is the owner's word after this machine exists. HubSpot stays Relay/env, not the Connect board. A named vendor file may POST `/api/inbound`; do not parse Instantly JSON in `decide`.
+**Do not** reopen cl-007 to "finish Instantly." HubSpot stays Relay/env, not the Connect board. Do not parse Instantly JSON in `decide` or in `inbound.py`. Do not invent LinkedIn, RVM, or CaseStudy/Form URLs.
 
 Previous arc: paid Apollo People Search; HubSpot test contact (ts-013).
 
@@ -48,7 +48,8 @@ Previous arc: paid Apollo People Search; HubSpot test contact (ts-013).
 | # | Doc |
 | --- | --- |
 | 1 | this hub |
-| 2 | [[ARCHITECTURE-AT-A-GLANCE_v3_integrations]] — current |
+| 2 | [[ARCHITECTURE-AT-A-GLANCE_v4_operational]] — current |
+| 21 | [[ARCHITECTURE-AT-A-GLANCE_v3_integrations]] — superseded |
 | 17 | [[ARCHITECTURE-AT-A-GLANCE_v2_comms-layer]] — superseded |
 | 15 | [[ARCHITECTURE-AT-A-GLANCE_v1_comms-layer]] — superseded |
 | 12 | [[ARCHITECTURE]] |
@@ -65,6 +66,9 @@ Previous arc: paid Apollo People Search; HubSpot test contact (ts-013).
 | 18 | [[2026-11-18-connect-is-brochure]] |
 | 19 | [[2026-11-18-instantly-send-is-the-email-switch]] |
 | 20 | [[2026-11-18-secrets-are-not-mounts]] |
+| 22 | [[2026-11-18-instantly-is-not-linkedin]] |
+| 23 | [[2026-11-18-twilio-is-not-rvm]] |
+| 24 | [[2026-11-18-playbook-has-no-urls]] |
 | 10 | [[2026-11-17-journal]] |
 | 11 | [the board](tickets/INDEX.md) |
 

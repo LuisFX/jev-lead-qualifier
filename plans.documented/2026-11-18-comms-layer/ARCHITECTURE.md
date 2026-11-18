@@ -8,13 +8,13 @@ arc: 2026-11-18-comms-layer
 status: live
 read_order: 12
 tags: [architecture]
-confirmed_glance: ARCHITECTURE-AT-A-GLANCE_v3_integrations.md
+confirmed_glance: ARCHITECTURE-AT-A-GLANCE_v4_operational.md
 oracle: leadqualifier/workitem.fsx
 ---
 
 # Architecture — comms layer
 
-Hub: [[HANDOFF-MEMORY]]. Confirmed glance: [[ARCHITECTURE-AT-A-GLANCE_v3_integrations]] (v2 superseded). Oracles: `leadqualifier/workitem.fsx`, `leadqualifier/integrations.fsx`. Board: [tickets/INDEX.md](tickets/INDEX.md). Tombstones: [[TOMBSTONES]]. Parent: [intake architecture](../2026-11-17-intake-rank-handoff/ARCHITECTURE.md).
+Hub: [[HANDOFF-MEMORY]]. Confirmed glance: [[ARCHITECTURE-AT-A-GLANCE_v4_operational]] (v3 superseded). Oracles: `leadqualifier/workitem.fsx`, `leadqualifier/integrations.fsx`. Board: [tickets/INDEX.md](tickets/INDEX.md). Tombstones: [[TOMBSTONES]]. Parent: [intake architecture](../2026-11-17-intake-rank-handoff/ARCHITECTURE.md).
 
 Host Python is ported from the oracle. It is not re-derived from this prose. A vendor name is not a type.
 
@@ -23,7 +23,7 @@ Host Python is ported from the oracle. It is not re-derived from this prose. A v
 - F# owns the types. `leadqualifier/workitem.fsx` and `leadqualifier/integrations.fsx` are the spec. `dotnet fsi` on those files is the gate (`./run.sh oracles`).
 - Illegal states are unrepresentable. `Open` has four parts: arrival, disposition, HubSpot `Relay`, sequencer `Outbound`.
 - Channel is a pipe. Offer is what leaves. A vendor is a catalog file the operator mounts onto a slot. Those stay separate words.
-- Disposition is authorization. A new `Pending` is born only from `Queue` (Warm/Hot) or `HandOff` (Hot).
+- Disposition is authorization. A new `Pending` is born from `Queue` (Warm/Hot), `HandOff` (Hot), or `SendDecline` (Disqualify + nonempty DeclineDraft).
 - `contactOf` is unchanged (Hidden on Unreviewed and Dismissed).
 - `scoring.py` `assemble` stays the rank. It does not send.
 - One operator. No tenant id.
@@ -47,7 +47,7 @@ See the glance. Refusals: `NotArrived`, `AlreadyArrived`, `NotJudged`, `NotHeld`
 
 `Channel` (Email \| LinkedIn \| Voice \| Sms \| RinglessVoicemail), `Offer`, `Draft`, `Outbound`, then existing `Arrival` / `Disposition` / `Relay`. `Command` is `Queue of Draft`, `HandOff of Draft`, `RecordReply of body`, `MarkDispatched`, `MarkDispatchFailed`. `State` is `Nothing | Open of Arrival * Disposition * Relay * Outbound`.
 
-Host-only, not stored on `Open`: `Bindings = Map<Channel, Comms>`, `Catalog`, `Mounts`, `compose`, `InboundMatch`. Catalog is not a fifth part of `Open`.
+`Command` also has `SendDecline of Draft`. Host-only, not stored on `Open`: `Bindings = Map<Channel, Comms>`, `Catalog`, `Mounts`, `ReceiveMounts`, `compose`, `InboundMatch`. Catalog is not a fifth part of `Open`. Receive is not an Out slot.
 
 ## §3 Oracle
 
@@ -70,19 +70,18 @@ Location is the URL. `#lead/{id}` shows channel, offer, outbox. `#connect` is fi
 
 ## §6 Waves
 
-0 glance v1 · 1 oracle v1 · 2 FakeComms · 3 Elmish · 4 (retired Instantly-named ticket) · 5 Channel + Offer · 6 Bindings per channel · 7 Inbound match · 8 Catalog, mounts, Connect.
+0 glance v1 · 1 oracle v1 · 2 FakeComms · 3 Elmish · 4 (retired Instantly-named ticket) · 5 Channel + Offer · 6 Bindings per channel · 7 Inbound match · 8 Catalog, mounts, Connect · 9 live Email skip · 10 SendDecline · 11 Twilio catalog · 12 Receive Email.
 
-Live send of a named vendor is operational, after the machine exists, test address only. It is not a wave named after a vendor.
+Live Twilio POST and a reachable Instantly webhook are the owner's later word. LinkedIn / RVM / invented URLs are STOPs (cl-019, cl-020).
 
 ## §7 As built
 
-Wave 8 (cl-012, cl-013, cl-014) is built together. Glance v3 is live; v2 is superseded. `architecture_settled` is true after Fake Connect smoke `:8786`. Remaining glance "still open" rows are operational (live Email POST, Voice/SMS catalog rows, URLs, `SendDecline`, Receive plugins).
+Waves 9–12 (cl-015–020) close glance v3's operational opens. Glance v4 is live; v3 is superseded. LinkedIn Instantly absent; Twilio RVM forbidden; playbook 0 URLs.
 
-- Work-item oracle: `Channel`, `Offer`, `Draft`. Host-only `DispatchError`, `lookup`, `fakeBindings`, `InboundHint`, `InboundMatch`, `Directory`, `matchInbound`. Floor 68, 0 failed. `Open` still four parts. `Arrival` is still `ApolloPerson | CsvRow`. `rg Instantly leadqualifier/workitem.fsx` → 0.
-- Integrations oracle: `Catalog`, `Capability`, `Mounts`, `compose`, `ComposeError`. Loads 0. Floor 6, 0 failed. RED L3: Email plugin on Voice allowed → `FAIL exception: L3: expected Error CapabilityMismatch, got Ok`. Restored `when Set.contains (Send ch)`. `rg Instantly leadqualifier/integrations.fsx` → 0. `ORACLES` `EXPECTED 2`.
-- Host compose: `leadqualifier/integrations.py`. sqlite `comms_mount`. `default_bindings` is `compose(catalog, load_mounts())`. `rg INSTANTLY_SEND leadqualifier/bindings.py` → 0. InstantlyEmail is the Email factory when mounted and ready. Mounted + not ready → `UnreadyComms` / `plugin_unready`. `Bindings.with_channel`. Drain catches `PluginUnready` like `ChannelUnbound`.
-- Connect: five Channel Out cards on `#connect`. Email candidates `[email-plugin]`; Voice `[]`. `GET/POST /api/integrations`. `/api/status` `mounts` summary; `instantly.send` gone.
-- Inbound paste and match still work (smoke `:8786`).
-- Playbook has 0 URLs.
-- Fake Connect smoke 2026-11-18 (`FIRSTREAD_FAKE=1` `:8786`, `FIRSTREAD_SQLITE=/tmp/firstread-wave8.sqlite`, Instantly keys unset, `FIRSTREAD_RELAY=0`; did not restart 8781–8785). Five Fake slots; Email mount `needs_credential`; Queue `csv-wave8d-0001` → `plugin_unready`; unmount then Queue `csv-wave8d-0002` → `fake-comms-1`; Voice mount 409 `capability_mismatch`; paste L001 and inbound email still work. No Instantly POST.
+- Work-item oracle: `SendDecline of Draft`. RED: Command without decide → `FS0025` + `FAIL exception: The match cases were incomplete` (`68 passed, 1 failed`). Decide added → `75 passed, 0 failed`. Floor 75. `rg Instantly leadqualifier/workitem.fsx` → 0.
+- Integrations oracle: `Capability = Send of Channel | Receive of Channel`. Catalog: `email-plugin` Send+Receive Email, `sms-plugin` Send Sms, `voice-plugin` Send Voice. Floor 10, 0 failed. `rg Instantly leadqualifier/integrations.fsx` → 0. `ORACLES` `EXPECTED 2`.
+- Host: `twilio_sms.py` / `twilio_voice.py` httpx named URLs. `instantly_inbound.py` beside Instantly. sqlite `comms_receive`. `rg Voice leadqualifier/instantly.py` → 0. `rg Instantly leadqualifier/inbound.py` → 0. `rg INSTANTLY_SEND tests/test_comms.py` → 0.
+- Live Email skip: key present (len 92), test email present (len 19), campaign absent (len 0). No Instantly POST. Live Twilio: SID/token/from all absent. No Twilio POST.
+- Fake smoke 2026-11-18 (`FIRSTREAD_FAKE=1` `:8787`, `FIRSTREAD_SQLITE=/tmp/firstread-wave9.sqlite`, `FIRSTREAD_RELAY=0`). Email mount `needs_credential`. Email on Sms 409. Voice/Sms candidates nonempty; LinkedIn/RVM `[]`. Queue hot `csv-wave9-hot-0001` → `fake-comms-2`. SendDecline disqualify → `dismissed` + `fake-comms-1` + contact Hidden. Receive unmounted 404; mount; `email_opened` 204; `reply_received` folds. Voice-plugin on RVM 409. Port killed.
+- Playbook has 0 URLs. `offer_for_action` stays Copy.
 

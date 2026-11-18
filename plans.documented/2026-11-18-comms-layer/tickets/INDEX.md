@@ -12,7 +12,7 @@ tags: [board]
 
 # Board — comms layer
 
-Hub: [[HANDOFF-MEMORY]]. Glance: [[ARCHITECTURE-AT-A-GLANCE_v3_integrations]] (v2 superseded). Design: [[ARCHITECTURE]]. Tombstones: [[TOMBSTONES]].
+Hub: [[HANDOFF-MEMORY]]. Glance: [[ARCHITECTURE-AT-A-GLANCE_v4_operational]] (v3 superseded). Design: [[ARCHITECTURE]]. Tombstones: [[TOMBSTONES]].
 
 ## Legend
 
@@ -39,6 +39,11 @@ Hub: [[HANDOFF-MEMORY]]. Glance: [[ARCHITECTURE-AT-A-GLANCE_v3_integrations]] (v
 | 6 · Bindings per channel | cl-009 | Fake per channel; Email adapter does not mention Voice | ✅ 2026-11-18 |
 | 7 · Inbound match | cl-011 | UnknownSender named; paste still works | ✅ 2026-11-18 |
 | 8 · Catalog, mounts, Connect | cl-012 cl-013 cl-014 | Fake Connect smoke: five slots, mount Email, `plugin_unready`, unmount Fake, Voice 409 | ✅ 2026-11-18 |
+| 9 · Live Email | cl-015 | skip unless key+campaign+test email; one-port mount+Queue when present | ✅ 2026-11-18 (skip: campaign absent) |
+| 10 · SendDecline | cl-016 | Disqualify + nonempty DeclineDraft → OutboundPending | ✅ 2026-11-18 |
+| 11 · Twilio SMS + Voice | cl-017 | Connect Voice/Sms candidates; no live Twilio POST | ✅ 2026-11-18 |
+| 12 · Receive Email | cl-018 | mounted webhook → RecordReply; unmounted 404 | ✅ 2026-11-18 |
+| stop · LinkedIn / RVM / URLs | cl-019 cl-020 | Instantly is not LinkedIn; Twilio is not RVM; 0 playbook URLs | ✅ 2026-11-18 |
 
 ## Tickets
 
@@ -58,3 +63,9 @@ Hub: [[HANDOFF-MEMORY]]. Glance: [[ARCHITECTURE-AT-A-GLANCE_v3_integrations]] (v
 | 012 | [Catalog, mounts, compose](2026-11-18-cl-012-catalog-compose.md) | 8 | 009 | ✅ |
 | 013 | [Connect is the mount board](2026-11-18-cl-013-connect-board.md) | 8 | 012 | ✅ |
 | 014 | [Retire INSTANTLY_SEND as the Email switch](2026-11-18-cl-014-retire-instantly-send.md) | 8 | 012 | ✅ |
+| 015 | [Live Email on a test address](2026-11-18-cl-015-live-email.md) | 9 | 012 | ✅ |
+| 016 | [SendDecline](2026-11-18-cl-016-send-decline.md) | 10 | 010 | ✅ |
+| 017 | [Twilio SMS and Voice catalog](2026-11-18-cl-017-twilio-catalog.md) | 11 | 012 | ✅ |
+| 018 | [Receive Email](2026-11-18-cl-018-receive-email.md) | 12 | 011, 012 | ✅ |
+| 019 | [LinkedIn Out stays Fake](2026-11-18-cl-019-linkedin-stays-fake.md) | stop | — | ✅ |
+| 020 | [RinglessVoicemail stays Fake](2026-11-18-cl-020-rvm-stays-fake.md) | stop | — | ✅ |

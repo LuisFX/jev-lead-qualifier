@@ -2,8 +2,9 @@
 
 TEACHING NOTE: Queue / HandOff still authorize. This module occupies a
 Channel slot. Unmounted is Fake. Mounted is a plugin that declares
-`Send` of that channel. Two plugins on one slot is unspeakable (one
-Mount per Channel). A plugin that only sends Email cannot occupy Voice.
+`Send` of that channel. Receive is a second occupancy map, not an Out
+slot. Two plugins on one slot is unspeakable (one Mount per Channel). A
+plugin that only sends Email cannot occupy Voice.
 
 `compose` is total on Channel. Unmounted is not `channel_unbound`.
 Mounted without a process credential is `plugin_unready` on dispatch —
@@ -12,8 +13,9 @@ Fake is not silently kept while sqlite says Mounted.
 Secrets stay in env. This file never stores a key. Ready is "the process
 has the credential." Env is resolved at process start; after adding a
 key, restart. ⭐ ENFORCED BY: `tests/test_integrations.py`.
-The catalog factory for Email lives in `instantly.py`; this file is the
-only composition import of it. `decide` does not import it.
+The catalog factory for Email lives in `instantly.py`; SMS and Voice live
+in `twilio_sms.py` / `twilio_voice.py`. This file is the only composition
+import of them. `decide` does not import them.
 """
 
 from __future__ import annotations
@@ -26,6 +28,8 @@ from .comms import Bindings, Comms, FakeComms, PluginUnready
 from .workitem import Channel, Email, LinkedIn, RinglessVoicemail, Sms, Voice, assert_never
 
 EMAIL_PLUGIN = "email-plugin"
+SMS_PLUGIN = "sms-plugin"
+VOICE_PLUGIN = "voice-plugin"
 
 
 @dataclass(frozen=True)
@@ -50,7 +54,13 @@ class Send:
     kind: Literal["send"] = "send"
 
 
-Capability = Send
+@dataclass(frozen=True)
+class Receive:
+    channel: Channel
+    kind: Literal["receive"] = "receive"
+
+
+Capability = Send | Receive
 
 
 @dataclass(frozen=True)
@@ -101,9 +111,13 @@ ALL_CHANNELS: tuple[Channel, ...] = (
 )
 
 
-def host_catalog() -> dict[PluginId, frozenset[Send]]:
-    """Host catalog. Plugin ids are opaque labels; the Email factory is InstantlyEmail."""
-    return {PluginId(EMAIL_PLUGIN): frozenset({Send(Email())})}
+def host_catalog() -> dict[PluginId, frozenset[Capability]]:
+    """Host catalog. Plugin ids are opaque labels; factories live in vendor files."""
+    return {
+        PluginId(EMAIL_PLUGIN): frozenset({Send(Email()), Receive(Email())}),
+        PluginId(SMS_PLUGIN): frozenset({Send(Sms())}),
+        PluginId(VOICE_PLUGIN): frozenset({Send(Voice())}),
+    }
 
 
 class UnreadyComms:
@@ -116,6 +130,12 @@ class UnreadyComms:
 def plugin_ready(pid: PluginId) -> bool:
     if pid.value == EMAIL_PLUGIN:
         return config.instantly_api_key() is not None and config.instantly_campaign_id() is not None
+    if pid.value in (SMS_PLUGIN, VOICE_PLUGIN):
+        return (
+            config.twilio_account_sid() is not None
+            and config.twilio_auth_token() is not None
+            and config.twilio_from_number() is not None
+        )
     return False
 
 
@@ -126,11 +146,23 @@ def adapter_for(pid: PluginId, channel: Channel) -> Comms:
 
             return InstantlyEmail()
         return UnreadyComms()
+    if pid.value == SMS_PLUGIN and isinstance(channel, Sms):
+        if plugin_ready(pid):
+            from .twilio_sms import TwilioSms
+
+            return TwilioSms()
+        return UnreadyComms()
+    if pid.value == VOICE_PLUGIN and isinstance(channel, Voice):
+        if plugin_ready(pid):
+            from .twilio_voice import TwilioVoice
+
+            return TwilioVoice()
+        return UnreadyComms()
     raise AssertionError(f"unhandled plugin={pid.value!r} channel={channel.kind}")
 
 
 def compose(
-    catalog: dict[PluginId, frozenset[Send]],
+    catalog: dict[PluginId, frozenset[Capability]],
     mounts: dict[str, Mount],
     *,
     fake: FakeComms | None = None,
@@ -154,8 +186,12 @@ def compose(
     return ComposeOk(Bindings(by_kind))
 
 
-def candidates_for(catalog: dict[PluginId, frozenset[Send]], channel: Channel) -> list[str]:
+def candidates_for(catalog: dict[PluginId, frozenset[Capability]], channel: Channel) -> list[str]:
     return [pid.value for pid, caps in catalog.items() if Send(channel) in caps]
+
+
+def receive_candidates_for(catalog: dict[PluginId, frozenset[Capability]], channel: Channel) -> list[str]:
+    return [pid.value for pid, caps in catalog.items() if Receive(channel) in caps]
 
 
 def mounts_from_rows(rows: dict[str, str]) -> dict[str, Mount]:
@@ -172,6 +208,10 @@ def mounts_from_rows(rows: dict[str, str]) -> dict[str, Mount]:
 
 def load_mounts(ledger) -> dict[str, Mount]:
     return mounts_from_rows(ledger.list_mounts())
+
+
+def load_receive_mounts(ledger) -> dict[str, Mount]:
+    return mounts_from_rows(ledger.list_receive_mounts())
 
 
 def compose_from_ledger(ledger) -> Bindings:
@@ -225,6 +265,55 @@ def try_unmount(ledger, channel: Channel) -> ComposeOk | ComposeErr:
     mounts = load_mounts(ledger)
     mounts[channel.kind] = Unmounted()
     return compose(host_catalog(), mounts)
+
+
+def try_mount_receive(ledger, channel: Channel, pid: PluginId) -> None | ComposeErr:
+    """Receive occupancy. Not compose: Bindings stay Out-only."""
+    catalog = host_catalog()
+    caps = catalog.get(pid)
+    if caps is None:
+        return ComposeErr(UnknownPlugin())
+    if Receive(channel) not in caps:
+        return ComposeErr(CapabilityMismatch())
+    return None
+
+
+def receive_snapshot(ledger) -> list[dict[str, object]]:
+    """JSON for GET /api/integrations receive. Never includes a secret value."""
+    catalog = host_catalog()
+    mounts = load_receive_mounts(ledger)
+    slots: list[dict[str, object]] = []
+    for ch in ALL_CHANNELS:
+        mount = mounts[ch.kind]
+        if isinstance(mount, Unmounted):
+            slots.append(
+                {
+                    "channel": ch.kind,
+                    "mount": {"kind": "unmounted"},
+                    "ready": True,
+                    "needs_credential": False,
+                    "candidates": receive_candidates_for(catalog, ch),
+                }
+            )
+            continue
+        if isinstance(mount, Mounted):
+            slots.append(
+                {
+                    "channel": ch.kind,
+                    "mount": {"kind": "mounted", "plugin_id": mount.plugin_id.value},
+                    "ready": True,
+                    "needs_credential": False,
+                    "candidates": receive_candidates_for(catalog, ch),
+                }
+            )
+            continue
+        assert_never(mount)
+    return slots
+
+
+def receive_email_mounted(ledger) -> bool:
+    mount = load_receive_mounts(ledger)[Email().kind]
+    return isinstance(mount, Mounted)
 
 
 def mounts_status(ledger) -> dict[str, dict[str, object]]:

@@ -169,6 +169,7 @@
       <button class="btn small" data-cmd="dismiss">Dismiss</button>
       <button class="btn small" data-cmd="queue">Queue sequence</button>
       <button class="btn small" data-cmd="hand_off">Hand off</button>
+      <button class="btn small" data-cmd="send_decline">Send decline</button>
       <span class="meta" id="lead-disp"></span>
   </div>
   <div class="reply-row" id="reply-row">
@@ -293,6 +294,7 @@
     </div>
     <div class="card">
       <div class="card-head"><div><div class="eyebrow">Inputs</div><h3>Where leads come from</h3></div></div>
+      <div class="channel-slots" id="connect-receive"></div>
       <div class="connectors" id="connect-inputs"></div>
     </div>
     <div class="card">
@@ -305,7 +307,7 @@
       <div class="card-head"><div><div class="eyebrow">Privacy</div><h3>What leaves the building</h3></div></div>
       <ul class="plain small">
         <li>Sent to Jev: company description, person name, title and bio, the message text, and the ICP option texts. <b>Never</b> e-mail addresses or phone numbers.</li>
-        <li>Nothing is generated: Jev returns probabilities over options you defined. Decline drafts are templates filled in code and are never auto-sent.</li>
+        <li>Nothing is generated: Jev returns probabilities over options you defined. Decline drafts are templates filled in code. Assemble does not send them. Send decline is an operator command.</li>
         <li>Answers are stored per lead and question in the sqlite ledger; they survive a restart.</li>
         <li>A message that asks for credentials or personal data is flagged for security review and never routed automatically.</li>
       </ul>

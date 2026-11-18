@@ -11,8 +11,11 @@
   Queue of Nurture is a decision with NoSend (no personal outreach).
   HandOff of Hot emits RelayPending AND OutboundPending (Voice + Calendar).
   RecordReply of a non-empty body reopens Unreviewed. Empty body refuses.
-  Empty Offer refuses EmptyDraft. Nonempty DeclineDraft refuses NotSendable
-  (glanced, not sent; SendDecline is not a command here).
+  Empty Offer refuses EmptyDraft. Queue / HandOff of nonempty DeclineDraft
+  refuse NotSendable. SendDecline of Disqualify emits PersonDismissed then
+  OutboundPending of that draft. Empty DeclineDraft is EmptyDraft. Any other
+  Offer is NotSendable. Not Disqualify is NotSequenceable. Contact stays
+  Hidden on Dismissed; drain reads payload_json.
 
   TEACHING NOTE: Sms and RinglessVoicemail are legal Queue channels. Nothing in
   this file's helpers is a playbook row — production pick_action does not emit
@@ -175,6 +178,7 @@ type Command =
     | Dismiss
     | Queue of Draft
     | HandOff of Draft
+    | SendDecline of Draft
     | RecordReply of body: string
     | MarkDelivered of remoteId: string
     | MarkFailed of reason: string
@@ -275,6 +279,20 @@ let decide (cmd: Command) (state: State) (judgement: Judgement) : Result<Event l
     | HandOff _, Open (_, HandedToCloser, _, _), _ -> Error AlreadyHandedOff
     | HandOff _, Open (_, Dismissed, _, _), _
     | HandOff _, Open (_, QueuedForSequence, _, _), _ -> Error NotHandoffable
+
+    | SendDecline _, Nothing, _ -> Error NotArrived
+    | SendDecline _, Open (_, Unreviewed, _, _), Unjudged
+    | SendDecline _, Open (_, HeldForHuman, _, _), Unjudged -> Error NotJudged
+    | SendDecline draft, Open (_, Unreviewed, _, _), Judged (_, Disqualify, _)
+    | SendDecline draft, Open (_, HeldForHuman, _, _), Judged (_, Disqualify, _) ->
+        if emptyDraft draft then Error EmptyDraft
+        elif declineNotSent draft.Offer then Ok [ PersonDismissed; OutboundPending draft ]
+        else Error NotSendable
+    | SendDecline _, Open (_, Unreviewed, _, _), Judged _
+    | SendDecline _, Open (_, HeldForHuman, _, _), Judged _ -> Error NotSequenceable
+    | SendDecline _, Open (_, Dismissed, _, _), _ -> Error AlreadyDismissed
+    | SendDecline _, Open (_, QueuedForSequence, _, _), _
+    | SendDecline _, Open (_, HandedToCloser, _, _), _ -> Error NotDismissable
 
     | RecordReply _, Nothing, _ -> Error NotArrived
     | RecordReply body, Open _, _ when blank body -> Error EmptyReply
@@ -689,6 +707,42 @@ try
         match born () with
         | Open (_, _, _, _) -> true
         | Nothing -> false)
+
+    // L69 SendDecline of nonempty DeclineDraft on Disqualify emits PersonDismissed then OutboundPending.
+    let s69, ev69 = apply (SendDecline declineDraft) (born ()) judgedDq |> mustOk "L69"
+    law 69 "send-decline-disqualify" (
+        match s69, ev69 with
+        | Open (_, Dismissed, _, Outbound.Pending d), [ PersonDismissed; OutboundPending d' ] ->
+            d = declineDraft && d' = declineDraft
+        | _ -> false)
+
+    // L70 empty DeclineDraft is EmptyDraft.
+    apply (SendDecline { Channel = Email; Offer = DeclineDraft "" }) (born ()) judgedDq
+    |> mustErr "L70" EmptyDraft
+    law 70 "send-decline-empty" true
+
+    // L71 Copy on Disqualify SendDecline is NotSendable.
+    apply (SendDecline copyDraft) (born ()) judgedDq |> mustErr "L71" NotSendable
+    law 71 "send-decline-copy-not-sendable" true
+
+    // L72 SendDecline on Warm is NotSequenceable.
+    apply (SendDecline declineDraft) (born ()) judgedWarm |> mustErr "L72" NotSequenceable
+    law 72 "send-decline-warm-not-sequenceable" true
+
+    // L73 SendDecline on already Dismissed is AlreadyDismissed.
+    let s73, _ = apply Dismiss (born ()) judgedDq |> mustOk "L73a"
+    apply (SendDecline declineDraft) s73 judgedDq |> mustErr "L73" AlreadyDismissed
+    law 73 "send-decline-already-dismissed" true
+
+    // L74 contactOf after SendDecline is Hidden (Dismissed).
+    let s74, _ = apply (SendDecline declineDraft) (born ()) judgedDq |> mustOk "L74"
+    law 74 "send-decline-contact-hidden" (contactOf s74 = Hidden)
+
+    // L75 outbound after SendDecline is Pending of that draft (drain reads payload, not Revealed).
+    law 75 "send-decline-outbound-pending" (
+        match s74 with
+        | Open (_, Dismissed, _, Outbound.Pending d) -> d = declineDraft
+        | _ -> false)
 
 with ex ->
     failed.Value <- failed.Value + 1

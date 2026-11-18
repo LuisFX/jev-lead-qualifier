@@ -5,18 +5,21 @@ aliases: [glance-v3-comms]
 date: 2026-11-18
 type: research
 arc: 2026-11-18-comms-layer
-status: live
-read_order: 2
+status: superseded
+read_order: 21
 supersedes: ARCHITECTURE-AT-A-GLANCE_v2_comms-layer.md
+superseded_by: ARCHITECTURE-AT-A-GLANCE_v4_operational.md
 confirmed: 2026-11-18
 tags: [architecture, glance, comms, integrations]
 ---
 
 # At a glance v3 — an operator mounts a provider onto a slot
 
+**Superseded 2026-11-18 by [[ARCHITECTURE-AT-A-GLANCE_v4_operational]].** Keep as evidence of what wave 8 built against. The hole: SendDecline, Receive, Twilio catalog files, and live Email on a test address were still open.
+
 Hub: [[HANDOFF-MEMORY|hub]]. Supersedes [[ARCHITECTURE-AT-A-GLANCE_v2_comms-layer]]. Parent glance (intake): [intake v1](../2026-11-17-intake-rank-handoff/ARCHITECTURE-AT-A-GLANCE_v1_intake-rank-handoff.md).
 
-**Confirmed 2026-11-18.** Owner ruling: live senders are any, some, or all channels; configuration is admin-driven plugins; code-complete before live smoke; HubSpot stays Relay/env, not this board. The match that is law is `leadqualifier/workitem.fsx` (Open, Channel, Offer) and `leadqualifier/integrations.fsx` (Catalog, Mounts, compose). Census: the research notes under Evidence.
+**Confirmed 2026-11-18 (then superseded).** Owner ruling: live senders are any, some, or all channels; configuration is admin-driven plugins; code-complete before live smoke; HubSpot stays Relay/env, not this board. The match that is law is `leadqualifier/workitem.fsx` (Open, Channel, Offer) and `leadqualifier/integrations.fsx` (Catalog, Mounts, compose). Census: the research notes under Evidence.
 
 ## The story
 

@@ -29,12 +29,15 @@ People Search both `Arrive`. Contact is derived, never a column.
   POST /api/imports                 CSV Arrive (CsvRow)
   POST /api/search                  People Search → Arrive (ApolloPerson)
   GET  /api/review                  HeldForHuman queue
-  POST /api/leads/{id}/command      Flag | Dismiss | Queue | HandOff | RecordReply → 409 named refusal
+  POST /api/leads/{id}/command      Flag | Dismiss | Queue | HandOff | SendDecline | RecordReply → 409 named refusal
   POST /api/leads/{id}/reply        {text} → RecordReply of body, then rescore from the new message
   POST /api/inbound                 vendor-blind InboundHint + text → match then RecordReply
-  GET  /api/integrations            Channel Out slots, occupancy, ready, candidates (never keys)
+  GET  /api/integrations            Channel Out slots + Receive Email occupancy, ready, candidates (never keys)
   POST /api/integrations/mount      {channel, plugin_id} → 409 capability_mismatch | unknown_plugin
   POST /api/integrations/unmount    {channel}
+  POST /api/integrations/receive/mount    Receive occupancy
+  POST /api/integrations/receive/unmount
+  POST /api/receive/email           Instantly reply_received when Receive Email is mounted; else 404
 """
 
 from __future__ import annotations
@@ -51,7 +54,7 @@ from pathlib import Path
 from typing import Any, Iterator
 
 from fastapi import FastAPI, HTTPException, Query
-from fastapi.responses import FileResponse, StreamingResponse
+from fastapi.responses import FileResponse, Response, StreamingResponse
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
@@ -66,8 +69,18 @@ from .pipeline import Qualifier, run_totals
 from .relay import RelayLoop
 from .bindings import get_bindings, invalidate_bindings
 from .comms import drain_outbound
-from .integrations import ComposeErr, mounts_status, plugin_id, slot_snapshot, try_mount
+from .integrations import (
+    ComposeErr,
+    mounts_status,
+    plugin_id,
+    receive_email_mounted,
+    receive_snapshot,
+    slot_snapshot,
+    try_mount,
+    try_mount_receive,
+)
 from .inbound import UnknownSender, decode_hint, match_inbound
+from .instantly_inbound import Ignore, parse_instantly_inbound
 from .workitem import (
     Err,
     Nothing,
@@ -77,6 +90,7 @@ from .workitem import (
     decode_channel,
     draft_for_handoff,
     draft_for_queue,
+    draft_for_send_decline,
     encode_draft,
     judgement_from_result,
     outbound_json,
@@ -564,6 +578,8 @@ def lead_command(lead_id: str, body: CommandBody) -> dict[str, Any]:
     judgement = Unjudged() if result is None else judgement_from_result(icp_mod.live_version_id(), result)
     if body.kind == "hand_off":
         draft = draft_for_handoff(result)
+    elif body.kind == "send_decline":
+        draft = draft_for_send_decline(result)
     else:
         draft = draft_for_queue(result)
     extra: dict[str, Any] = {
@@ -579,7 +595,7 @@ def lead_command(lead_id: str, body: CommandBody) -> dict[str, Any]:
     out = get_ledger().apply_command(lead_id, cmd, judgement)
     if isinstance(out, Err):
         raise HTTPException(409, {"refusal": out.error.kind})
-    if body.kind in ("queue", "hand_off"):
+    if body.kind in ("queue", "hand_off", "send_decline"):
         drain_outbound(get_ledger(), get_bindings())
     if body.kind == "record_reply":
         get_ledger().invalidate_item(lead_id)
@@ -645,8 +661,9 @@ class UnmountBody(BaseModel):
 
 @app.get("/api/integrations")
 def integrations_get() -> dict[str, Any]:
-    """Channel Out slots. Occupancy and ready, never a secret value."""
-    return {"slots": slot_snapshot(get_ledger())}
+    """Channel Out slots and Receive occupancy. Never a secret value."""
+    ledger = get_ledger()
+    return {"slots": slot_snapshot(ledger), "receive": receive_snapshot(ledger)}
 
 
 @app.post("/api/integrations/mount")
@@ -661,7 +678,8 @@ def integrations_mount(body: MountBody) -> dict[str, Any]:
         raise HTTPException(409, {"refusal": out.error.kind})
     get_ledger().put_mount(ch.kind, pid.value)
     invalidate_bindings()
-    return {"slots": slot_snapshot(get_ledger())}
+    ledger = get_ledger()
+    return {"slots": slot_snapshot(ledger), "receive": receive_snapshot(ledger)}
 
 
 @app.post("/api/integrations/unmount")
@@ -672,4 +690,45 @@ def integrations_unmount(body: UnmountBody) -> dict[str, Any]:
         raise HTTPException(422, str(exc))
     get_ledger().delete_mount(ch.kind)
     invalidate_bindings()
-    return {"slots": slot_snapshot(get_ledger())}
+    ledger = get_ledger()
+    return {"slots": slot_snapshot(ledger), "receive": receive_snapshot(ledger)}
+
+
+@app.post("/api/integrations/receive/mount")
+def integrations_receive_mount(body: MountBody) -> dict[str, Any]:
+    try:
+        ch = decode_channel(body.channel)
+        pid = plugin_id(body.plugin_id)
+    except ValueError as exc:
+        raise HTTPException(422, str(exc))
+    err = try_mount_receive(get_ledger(), ch, pid)
+    if isinstance(err, ComposeErr):
+        raise HTTPException(409, {"refusal": err.error.kind})
+    get_ledger().put_receive_mount(ch.kind, pid.value)
+    ledger = get_ledger()
+    return {"slots": slot_snapshot(ledger), "receive": receive_snapshot(ledger)}
+
+
+@app.post("/api/integrations/receive/unmount")
+def integrations_receive_unmount(body: UnmountBody) -> dict[str, Any]:
+    try:
+        ch = decode_channel(body.channel)
+    except ValueError as exc:
+        raise HTTPException(422, str(exc))
+    get_ledger().delete_receive_mount(ch.kind)
+    ledger = get_ledger()
+    return {"slots": slot_snapshot(ledger), "receive": receive_snapshot(ledger)}
+
+
+@app.post("/api/receive/email")
+def receive_email(payload: dict[str, Any]) -> Any:
+    """Instantly reply_received → InboundHint → match → RecordReply. Unmounted is 404."""
+    if not receive_email_mounted(get_ledger()):
+        raise HTTPException(404, "receive email unmounted")
+    parsed = parse_instantly_inbound(payload)
+    if isinstance(parsed, Ignore):
+        return Response(status_code=204)
+    found = match_inbound(get_ledger(), parsed.hint)
+    if isinstance(found, UnknownSender):
+        raise HTTPException(409, {"refusal": "unknown_sender"})
+    return land_reply(found.work_item_id, parsed.body)

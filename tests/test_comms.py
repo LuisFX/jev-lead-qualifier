@@ -1,4 +1,4 @@
-"""FakeComms drain. Live Instantly is skipped without INSTANTLY_SEND.
+"""FakeComms drain. Live Instantly is skipped without key + campaign + test email.
 
 TEACHING NOTE: Queue of Warm records a dispatch only when the payload has an
 email. Demo L0*.json files have none — that is `no_address`, not a fake mailbox.
@@ -43,9 +43,11 @@ from leadqualifier.workitem import (
     QualifyingQuestion,
     Queue,
     RinglessVoicemail,
+    SendDecline,
     Sms,
     Unjudged,
     Voice,
+    decline_draft,
     email_draft,
     voice_draft,
 )
@@ -53,6 +55,10 @@ from leadqualifier.workitem import (
 
 def _warm():
     return Judged(IcpVersionId("v1"), "warm", False)
+
+
+def _dq():
+    return Judged(IcpVersionId("v1"), "disqualify", False)
 
 
 def test_queue_warm_without_email_is_no_address():
@@ -169,6 +175,35 @@ def test_instantly_posts_leads_endpoint(monkeypatch):
     assert seen["campaign"] == "camp-1"
 
 
+def test_send_decline_with_email_records_dispatch_while_hidden():
+    """Dismissed stays Hidden; drain still reads payload_json address."""
+    ledger = get_ledger()
+    payload = {
+        "id": "C-decline",
+        "source": "csv_import",
+        "received_at": "2026-11-18T00:00:00Z",
+        "person": {"name": "Ada", "email": "ada@secret.test"},
+        "company": {"name": "Analytical", "domain": "analytical.de"},
+        "message": {"text": "Vendor pitch."},
+    }
+    born = ledger.apply_command(
+        "C-decline", Arrive(CsvRow(ImportId("comms-decline"), 1)), Unjudged(), payload=payload
+    )
+    assert isinstance(born, ApplyOk)
+    sent = ledger.apply_command("C-decline", SendDecline(decline_draft()), _dq())
+    assert isinstance(sent, ApplyOk)
+    assert ledger.get_row("C-decline")["outbound_kind"] == "pending"
+    comms = FakeComms()
+    out = drain_outbound(ledger, fake_bindings(comms))
+    assert out["dispatched"] == 1
+    assert comms.calls[0]["address"] == "ada@secret.test"
+    assert comms.calls[0]["channel"] == "email"
+    assert comms.calls[0]["text"] == "not a fit"
+    row = ledger.get_row("C-decline")
+    assert row["outbound_kind"] == "dispatched"
+    assert row["disposition"] == "dismissed"
+
+
 def test_instantly_no_address():
     comms = InstantlyEmail(token="tok", campaign_id="camp-1")
     try:
@@ -183,14 +218,21 @@ def test_instantly_no_address():
         pass
 
 
+def _live_email_env() -> bool:
+    token = os.environ.get("INSTANTLY_API_KEY", "").strip()
+    campaign = os.environ.get("INSTANTLY_CAMPAIGN_ID", "").strip()
+    email = os.environ.get("INSTANTLY_TEST_EMAIL", "").strip()
+    return bool(token) and bool(campaign) and bool(email) and not token.startswith("your-")
+
+
 @pytest.mark.skipif(
-    os.environ.get("INSTANTLY_SEND", "").strip().lower() not in ("1", "true", "yes", "on"),
-    reason="INSTANTLY_SEND not set — live Instantly smoke is the owner's word",
+    not _live_email_env(),
+    reason="INSTANTLY_API_KEY + INSTANTLY_CAMPAIGN_ID + INSTANTLY_TEST_EMAIL not set — live Instantly smoke is the owner's word",
 )
 def test_instantly_live_posts_test_address():
     """Probe POST https://api.instantly.ai/api/v2/leads — the route InstantlyEmail calls.
 
-    🔴 UNENFORCED until INSTANTLY_SEND=1 plus INSTANTLY_API_KEY, INSTANTLY_CAMPAIGN_ID,
+    🔴 UNENFORCED until INSTANTLY_API_KEY, INSTANTLY_CAMPAIGN_ID, and
     INSTANTLY_TEST_EMAIL are in the environment. A skipped run proved nothing about Instantly.
     """
     token = os.environ.get("INSTANTLY_API_KEY", "").strip()

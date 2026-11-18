@@ -19,6 +19,8 @@ from leadqualifier.comms import FakeComms, drain_outbound
 from leadqualifier.fake_client import FakeClient
 from leadqualifier.integrations import (
     EMAIL_PLUGIN,
+    SMS_PLUGIN,
+    VOICE_PLUGIN,
     CapabilityMismatch,
     ComposeErr,
     ComposeOk,
@@ -38,7 +40,10 @@ from leadqualifier.workitem import (
     Judged,
     IcpVersionId,
     Queue,
+    Sms,
     Unjudged,
+    Copy,
+    Draft,
     email_draft,
 )
 
@@ -50,6 +55,9 @@ def no_vendor_keys(monkeypatch):
     monkeypatch.delenv("INSTANTLY_API_KEY", raising=False)
     monkeypatch.delenv("INSTANTLY_CAMPAIGN_ID", raising=False)
     monkeypatch.delenv("INSTANTLY_SEND", raising=False)
+    monkeypatch.delenv("TWILIO_ACCOUNT_SID", raising=False)
+    monkeypatch.delenv("TWILIO_AUTH_TOKEN", raising=False)
+    monkeypatch.delenv("TWILIO_FROM_NUMBER", raising=False)
 
 
 @pytest.fixture
@@ -140,7 +148,7 @@ def test_unmount_email_returns_fake():
     assert cleared.bindings.lookup(Email()) is fake
 
 
-def test_http_get_shape_and_voice_candidates_empty(client):
+def test_http_get_shape_and_voice_candidates(client):
     r = client.get("/api/integrations")
     assert r.status_code == 200
     slots = r.json()["slots"]
@@ -153,12 +161,22 @@ def test_http_get_shape_and_voice_candidates_empty(client):
     ]
     email = _slot(slots, "email")
     voice = _slot(slots, "voice")
+    sms = _slot(slots, "sms")
+    rvm = _slot(slots, "ringless_voicemail")
+    linkedin = _slot(slots, "linkedin")
     assert email["mount"]["kind"] == "unmounted"
     assert email["candidates"] == [EMAIL_PLUGIN]
-    assert voice["candidates"] == []
+    assert voice["candidates"] == [VOICE_PLUGIN]
+    assert sms["candidates"] == [SMS_PLUGIN]
+    assert rvm["candidates"] == []
+    assert linkedin["candidates"] == []
+    recv = r.json()["receive"]
+    assert _slot(recv, "email")["candidates"] == [EMAIL_PLUGIN]
+    assert _slot(recv, "voice")["candidates"] == []
     blob = json.dumps(r.json())
     assert "api_key" not in blob.lower()
     assert "INSTANTLY" not in blob
+    assert "TWILIO" not in blob
     status = client.get("/api/status").json()
     assert "instantly" not in status
     assert status["mounts"]["email"]["kind"] == "unmounted"
@@ -184,6 +202,15 @@ def test_http_mount_unmount_and_409_mismatch(client):
     gone = client.post("/api/integrations/unmount", json={"channel": "email"})
     assert gone.status_code == 200
     assert _slot(gone.json()["slots"], "email")["mount"]["kind"] == "unmounted"
+    sms_bad = client.post("/api/integrations/mount", json={"channel": "sms", "plugin_id": EMAIL_PLUGIN})
+    assert sms_bad.status_code == 409
+    assert sms_bad.json()["detail"]["refusal"] == "capability_mismatch"
+    sms_ok = client.post("/api/integrations/mount", json={"channel": "sms", "plugin_id": SMS_PLUGIN})
+    assert sms_ok.status_code == 200
+    assert _slot(sms_ok.json()["slots"], "sms")["mount"] == {"kind": "mounted", "plugin_id": SMS_PLUGIN}
+    voice_ok = client.post("/api/integrations/mount", json={"channel": "voice", "plugin_id": VOICE_PLUGIN})
+    assert voice_ok.status_code == 200
+    assert _slot(voice_ok.json()["slots"], "voice")["candidates"] == [VOICE_PLUGIN]
 
 
 def test_drain_mounted_not_ready_is_plugin_unready():
@@ -216,14 +243,94 @@ def test_drain_unmounted_with_address_is_fake():
     assert row["outbound_remote_id"] == "fake-comms-1"
 
 
+def test_drain_sms_mounted_not_ready_is_plugin_unready():
+    ledger = get_ledger()
+    _arrive("I-sms-unready", phone="+494012345")
+    assert isinstance(
+        ledger.apply_command("I-sms-unready", Queue(Draft(Sms(), Copy("sms ping"))), _warm()),
+        ApplyOk,
+    )
+    fake = FakeComms()
+    out = compose(host_catalog(), {"sms": Mounted(plugin_id(SMS_PLUGIN))}, fake=fake)
+    assert isinstance(out, ComposeOk)
+    drained = drain_outbound(ledger, out.bindings)
+    assert drained["failed"] == 1
+    assert fake.calls == []
+    row = ledger.get_row("I-sms-unready")
+    assert row["outbound_kind"] == "failed"
+    assert row["outbound_reason"] == "plugin_unready"
+
+
+def test_twilio_sms_mocked_post_does_not_hit_network(monkeypatch):
+    from leadqualifier.twilio_sms import TwilioSms
+
+    calls: list[str] = []
+
+    class Resp:
+        status_code = 201
+        content = b'{"sid":"SM123"}'
+
+        def json(self):
+            return {"sid": "SM123"}
+
+    def fake_post(url, **kwargs):
+        calls.append(url)
+        assert "Messages.json" in url
+        assert kwargs["auth"][0] == "ACtest"
+        return Resp()
+
+    monkeypatch.setattr("leadqualifier.twilio_sms.httpx.post", fake_post)
+    remote = TwilioSms(account_sid="ACtest", auth_token="tok", from_number="+15005550006").dispatch(
+        work_item_id="x",
+        channel=Sms(),
+        draft=Draft(Sms(), Copy("sms ping")),
+        payload={"person": {"phone": "+494012345"}},
+    )
+    assert remote == "SM123"
+    assert calls and "Messages.json" in calls[0]
+
+
+def test_twilio_voice_mocked_post_does_not_hit_network(monkeypatch):
+    from leadqualifier.twilio_voice import TwilioVoice
+    from leadqualifier.workitem import Voice, Calendar
+
+    calls: list[str] = []
+
+    class Resp:
+        status_code = 201
+        content = b'{"sid":"CA123"}'
+
+        def json(self):
+            return {"sid": "CA123"}
+
+    def fake_post(url, **kwargs):
+        calls.append(url)
+        assert "Calls.json" in url
+        assert "<Say>" in kwargs["data"]["Twiml"]
+        return Resp()
+
+    monkeypatch.setattr("leadqualifier.twilio_voice.httpx.post", fake_post)
+    remote = TwilioVoice(account_sid="ACtest", auth_token="tok", from_number="+15005550006").dispatch(
+        work_item_id="x",
+        channel=Voice(),
+        draft=Draft(Voice(), Calendar(("Tue", "Thu"))),
+        payload={"person": {"phone": "+494012345"}},
+    )
+    assert remote == "CA123"
+    assert calls and "Calls.json" in calls[0]
+
+
 def test_oracles_do_not_name_instantly():
     integ = (ROOT / "leadqualifier" / "integrations.fsx").read_text(encoding="utf-8")
     work = (ROOT / "leadqualifier" / "workitem.fsx").read_text(encoding="utf-8")
     adapter = (ROOT / "leadqualifier" / "instantly.py").read_text(encoding="utf-8")
     bindings = (ROOT / "leadqualifier" / "bindings.py").read_text(encoding="utf-8")
     comms = (ROOT / "leadqualifier" / "comms.py").read_text(encoding="utf-8")
+    inbound = (ROOT / "leadqualifier" / "inbound.py").read_text(encoding="utf-8")
     assert "Voice" in comms
     assert "Instantly" not in integ
     assert "Instantly" not in work
+    assert "Voice" not in adapter
     assert "class InstantlyEmail" in adapter
     assert "INSTANTLY_SEND" not in bindings
+    assert "Instantly" not in inbound

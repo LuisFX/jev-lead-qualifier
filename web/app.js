@@ -84,7 +84,7 @@
   };
   const state = { status: null, leads: [], leadsById: {}, results: {}, totals: null, metrics: null, icp: null, icpDraft: null, presets: [], playbook: null,
                   currentLead: null, running: false, lastRun: null, evidenceOff: new Set(), filters: {}, mode: "viewing", seq: 0,
-                  connect: { seq: 0, slots: [] } };
+                  connect: { seq: 0, slots: [], receive: [] } };
   const session = { cost: 0, requests: 0, latencies: [] };
 
   // ------------------------------------------------------------------ theme
@@ -735,6 +735,7 @@
       const snap = await api("/api/integrations");
       if (seq !== state.connect.seq) return;
       state.connect.slots = snap.slots || [];
+      state.connect.receive = snap.receive || [];
       renderConnect();
     } catch (e) {
       if (seq === state.connect.seq) toast(e.message, true);
@@ -746,6 +747,7 @@
       const snap = await api("/api/integrations/mount", { method: "POST", body: JSON.stringify({ channel, plugin_id: pluginId }) });
       if (seq !== state.connect.seq) return;
       state.connect.slots = snap.slots || [];
+      state.connect.receive = snap.receive || [];
       renderConnect();
     } catch (e) {
       if (seq === state.connect.seq) toast(e.message, true);
@@ -757,38 +759,74 @@
       const snap = await api("/api/integrations/unmount", { method: "POST", body: JSON.stringify({ channel }) });
       if (seq !== state.connect.seq) return;
       state.connect.slots = snap.slots || [];
+      state.connect.receive = snap.receive || [];
       renderConnect();
     } catch (e) {
       if (seq === state.connect.seq) toast(e.message, true);
     }
   }
+  async function mountReceive(channel, pluginId) {
+    const seq = ++state.connect.seq;
+    try {
+      const snap = await api("/api/integrations/receive/mount", { method: "POST", body: JSON.stringify({ channel, plugin_id: pluginId }) });
+      if (seq !== state.connect.seq) return;
+      state.connect.slots = snap.slots || [];
+      state.connect.receive = snap.receive || [];
+      renderConnect();
+    } catch (e) {
+      if (seq === state.connect.seq) toast(e.message, true);
+    }
+  }
+  async function unmountReceive(channel) {
+    const seq = ++state.connect.seq;
+    try {
+      const snap = await api("/api/integrations/receive/unmount", { method: "POST", body: JSON.stringify({ channel }) });
+      if (seq !== state.connect.seq) return;
+      state.connect.slots = snap.slots || [];
+      state.connect.receive = snap.receive || [];
+      renderConnect();
+    } catch (e) {
+      if (seq === state.connect.seq) toast(e.message, true);
+    }
+  }
+  function renderSlotCard(slot, { onMount, onUnmount, fakeLabel }) {
+    const mounted = slot.mount && slot.mount.kind === "mounted";
+    const occupying = mounted ? slot.mount.plugin_id : fakeLabel;
+    const cred = slot.needs_credential ? "needs a credential — restart after adding the key" : (slot.ready ? "ready" : "");
+    const actions = el("div", { class: "slot-actions" });
+    if (mounted) {
+      const btn = el("button", { class: "btn small", type: "button" }, "Unmount");
+      btn.addEventListener("click", () => onUnmount(slot.channel));
+      actions.append(btn);
+    } else if ((slot.candidates || []).length) {
+      const sel = el("select", { class: "select" }, ...slot.candidates.map((id) => el("option", { value: id }, id)));
+      const btn = el("button", { class: "btn small", type: "button" }, "Mount");
+      btn.addEventListener("click", () => onMount(slot.channel, sel.value));
+      actions.append(sel, btn);
+    } else {
+      actions.append(el("div", { class: "slot-hint" }, "Fake only — no plugin for this channel"));
+    }
+    return el("div", { class: "channel-slot", "data-channel": slot.channel },
+      el("div", { class: "slot-name" }, CHANNEL_LABEL[slot.channel] || slot.channel),
+      el("div", { class: "slot-occ" }, occupying),
+      el("span", { class: "pill" + (slot.needs_credential ? " bad" : " good") }, cred),
+      actions
+    );
+  }
   function renderConnect() {
     const inp = $("#connect-inputs"); inp.innerHTML = ""; for (const [ic, nm, ds] of INPUTS) inp.append(el("div", { class: "connector" }, el("span", { class: "ic" }, ic), el("div", {}, el("div", { class: "nm" }, nm), el("div", { class: "ds" }, ds)), el("span", { class: "pill" }, "webhook · CSV")));
     const out = $("#connect-outputs"); out.innerHTML = "";
     const slots = state.connect.slots.length ? state.connect.slots : ["email", "linkedin", "voice", "sms", "ringless_voicemail"].map((channel) => ({ channel, mount: { kind: "unmounted" }, ready: true, needs_credential: false, candidates: [] }));
-    for (const slot of slots) {
-      const mounted = slot.mount && slot.mount.kind === "mounted";
-      const occupying = mounted ? slot.mount.plugin_id : "Fake";
-      const cred = slot.needs_credential ? "needs a credential — restart after adding the key" : (slot.ready ? "ready" : "");
-      const actions = el("div", { class: "slot-actions" });
-      if (mounted) {
-        const btn = el("button", { class: "btn small", type: "button" }, "Unmount");
-        btn.addEventListener("click", () => unmountSlot(slot.channel));
-        actions.append(btn);
-      } else if ((slot.candidates || []).length) {
-        const sel = el("select", { class: "select" }, ...slot.candidates.map((id) => el("option", { value: id }, id)));
-        const btn = el("button", { class: "btn small", type: "button" }, "Mount");
-        btn.addEventListener("click", () => mountSlot(slot.channel, sel.value));
-        actions.append(sel, btn);
-      } else {
-        actions.append(el("div", { class: "slot-hint" }, "Fake only — no plugin for this channel"));
-      }
-      out.append(el("div", { class: "channel-slot", "data-channel": slot.channel },
-        el("div", { class: "slot-name" }, CHANNEL_LABEL[slot.channel] || slot.channel),
-        el("div", { class: "slot-occ" }, occupying),
-        el("span", { class: "pill" + (slot.needs_credential ? " bad" : " good") }, cred),
-        actions
-      ));
+    for (const slot of slots) out.append(renderSlotCard(slot, { onMount: mountSlot, onUnmount: unmountSlot, fakeLabel: "Fake" }));
+    const recvBox = $("#connect-receive");
+    if (recvBox) {
+      recvBox.innerHTML = "";
+      const recv = (state.connect.receive || []).filter((s) => s.channel === "email");
+      const emailIn = recv[0] || { channel: "email", mount: { kind: "unmounted" }, ready: true, needs_credential: false, candidates: [] };
+      const card = renderSlotCard(emailIn, { onMount: mountReceive, onUnmount: unmountReceive, fakeLabel: "Unmounted" });
+      const name = card.querySelector(".slot-name");
+      if (name) name.textContent = "Email In";
+      recvBox.append(card);
     }
     const s = state.status || {};
     const ap = s.apollo || {}; const pill = $("#apollo-pill"); pill.className = "pill " + (ap.enabled ? "good" : ""); pill.textContent = ap.enabled ? `enabled · ${ap.cached} cached` : ap.has_key ? "key present · flag off (APOLLO_ENRICH=1)" : "off — no key";

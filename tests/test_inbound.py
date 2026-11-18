@@ -134,6 +134,75 @@ def test_inbound_source_does_not_name_vendor_or_external_id():
     assert "externalId" not in inbound
 
 
+def test_receive_email_unmounted_is_404(client):
+    r = client.post("/api/receive/email", json={"event_type": "reply_received", "lead_email": "a@b.test", "reply_text": "hi"})
+    assert r.status_code == 404
+
+
+def test_receive_email_other_event_is_204(client):
+    mounted = client.post(
+        "/api/integrations/receive/mount", json={"channel": "email", "plugin_id": "email-plugin"}
+    )
+    assert mounted.status_code == 200
+    r = client.post("/api/receive/email", json={"event_type": "email_opened", "lead_email": "a@b.test"})
+    assert r.status_code == 204
+
+
+def test_receive_email_fixture_folds_like_paste(client):
+    csv = "name,email,company,message\nAda,ada@secret.test,Analytical,We drown in reports.\n"
+    imported = client.post("/api/imports", json={"csv": csv, "import_id": "recv-1"}).json()
+    wid = imported["inserted"][0]
+    mounted = client.post(
+        "/api/integrations/receive/mount", json={"channel": "email", "plugin_id": "email-plugin"}
+    )
+    assert mounted.status_code == 200
+    r = client.post(
+        "/api/receive/email",
+        json={
+            "event_type": "reply_received",
+            "lead_email": "ada@secret.test",
+            "reply_text": "Tuesday works",
+        },
+    )
+    assert r.status_code == 200
+    lead = r.json()["lead"]
+    assert lead["id"] == wid
+    assert lead["disposition"] == "unreviewed"
+    assert lead["message"]["text"] == "Tuesday works"
+    assert lead["message"]["prior"] == "We drown in reports."
+
+
+def test_receive_email_unknown_is_409(client):
+    mounted = client.post(
+        "/api/integrations/receive/mount", json={"channel": "email", "plugin_id": "email-plugin"}
+    )
+    assert mounted.status_code == 200
+    r = client.post(
+        "/api/receive/email",
+        json={"event_type": "reply_received", "lead_email": "nobody@secret.test", "reply_text": "hello"},
+    )
+    assert r.status_code == 409 and r.json()["detail"]["refusal"] == "unknown_sender"
+
+
+def test_receive_voice_plugin_on_email_in_is_409(client):
+    r = client.post(
+        "/api/integrations/receive/mount", json={"channel": "email", "plugin_id": "voice-plugin"}
+    )
+    assert r.status_code == 409 and r.json()["detail"]["refusal"] == "capability_mismatch"
+
+
+def test_parse_instantly_inbound_maps_reply_received():
+    from leadqualifier.instantly_inbound import Ignore, ParsedReply, parse_instantly_inbound
+
+    parsed = parse_instantly_inbound(
+        {"event_type": "reply_received", "lead_email": "ada@secret.test", "reply_text": "Tuesday works"}
+    )
+    assert isinstance(parsed, ParsedReply)
+    assert parsed.hint.email == "ada@secret.test"
+    assert parsed.body == "Tuesday works"
+    assert isinstance(parse_instantly_inbound({"event_type": "email_sent"}), Ignore)
+
+
 def test_arrival_has_no_reply_case():
     src = (ROOT / "leadqualifier" / "workitem.fsx").read_text(encoding="utf-8")
     start = src.index("type Arrival =")
