@@ -394,6 +394,13 @@ table.cm td.zero { color: var(--faint); }
 .connector .ic { width: 34px; height: 34px; border-radius: 8px; display: grid; place-items: center; background: var(--accent-soft); color: var(--accent-ink); font-family: var(--serif); font-weight: 600; }
 .connector .nm { font-weight: 600; }
 .connector .ds { color: var(--muted); font-size: .74rem; }
+.channel-slots { display: grid; grid-template-columns: repeat(auto-fill, minmax(220px, 1fr)); gap: 10px; }
+.channel-slot { display: grid; gap: 8px; border: 1px solid var(--border); border-radius: var(--r-s); padding: 12px; background: var(--card-2); }
+.channel-slot .slot-name { font-weight: 600; }
+.channel-slot .slot-occ { font-family: var(--mono); font-size: .78rem; color: var(--ink); }
+.channel-slot .slot-hint { color: var(--muted); font-size: .74rem; }
+.channel-slot .slot-actions { display: flex; gap: 8px; align-items: center; flex-wrap: wrap; }
+.channel-slot .select { min-width: 0; flex: 1; }
 .apollo-org { margin-top: 10px; border: 1px solid var(--border); border-radius: var(--r-s); padding: 10px 12px; background: var(--card-2); }
 
 /* ---------- demo button & panel */

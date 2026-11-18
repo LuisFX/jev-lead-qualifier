@@ -4,10 +4,12 @@ TEACHING NOTE: Queue / HandOff already authorized the send. This module is the
 other half, twin of `relay.py` / `hubspot.py`. `Relay` stays HubSpot.
 `Outbound` is this destination. Bindings is a Map Channel → Comms, host-only,
 not stored on Open. Drain looks up `draft.channel`. A missing key is
-`channel_unbound`, not a vendor exception. Revealed plus no address is
+`channel_unbound` (mis-compose). Unmounted is Fake, not unbound. Mounted
+without a process credential is `plugin_unready`. Revealed plus no address is
 `no_address`, not an invented mailbox.
 
-⭐ ENFORCED BY: `tests/test_comms.py`, `tests/test_bindings.py`.
+⭐ ENFORCED BY: `tests/test_comms.py`, `tests/test_bindings.py`,
+`tests/test_integrations.py`.
 """
 
 from __future__ import annotations
@@ -56,6 +58,11 @@ class NoAddress(Exception):
 class ChannelUnbound(Exception):
     def __init__(self) -> None:
         super().__init__("channel_unbound")
+
+
+class PluginUnready(Exception):
+    def __init__(self) -> None:
+        super().__init__("plugin_unready")
 
 
 class Comms(Protocol):
@@ -137,8 +144,11 @@ class Bindings:
             raise ChannelUnbound()
         return comms
 
+    def with_channel(self, channel: Channel, comms: Comms) -> Bindings:
+        return Bindings({**self.by_kind, channel.kind: comms})
+
     def with_email(self, comms: Comms) -> Bindings:
-        return Bindings({**self.by_kind, "email": comms})
+        return self.with_channel(Email(), comms)
 
 
 def fake_bindings(fake: FakeComms | None = None) -> Bindings:
@@ -170,6 +180,9 @@ def drain_outbound(ledger, bindings: Bindings) -> dict[str, int]:
                 dispatched += 1
         except ChannelUnbound:
             ledger.apply_command(wid, MarkDispatchFailed("channel_unbound"), Unjudged())
+            failed += 1
+        except PluginUnready:
+            ledger.apply_command(wid, MarkDispatchFailed("plugin_unready"), Unjudged())
             failed += 1
         except NoAddress:
             ledger.apply_command(wid, MarkDispatchFailed("no_address"), Unjudged())

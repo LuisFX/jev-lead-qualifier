@@ -1,8 +1,9 @@
 """Email host adapter: POST /api/v2/leads.
 
-TEACHING NOTE: this file binds Email only. Drain looks up Bindings[email].
-It does not mention other channels. A missing map key is `channel_unbound`
-in `comms.py`, not here.
+TEACHING NOTE: this file binds Email only. The catalog registers it as
+`email-plugin`. Drain looks up Bindings[email]. It does not mention other
+channels. Occupancy is a mount, not an env boolean. A missing map key is
+`channel_unbound` in `comms.py`, not here.
 
 ⭐ ENFORCED BY: `tests/test_bindings.py` (this file names Email only);
 `tests/test_comms.py` mocked POST. Live send is skipped unless INSTANTLY_SEND=1.

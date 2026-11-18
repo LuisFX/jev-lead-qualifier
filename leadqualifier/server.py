@@ -4,11 +4,12 @@ TEACHING NOTE: HTTP commands become `Command`; a named refusal is 409 with the
 refusal kind. Queue / HandOff drain `Bindings[draft.channel]`, never one global
 adapter. Paste and inbound are two hosts of `RecordReply`. Unknown inbound is
 409 `unknown_sender`; unknown paste id is 404 (unknown to the board).
+Mount / Unmount occupy Channel Out; 409 `capability_mismatch` | `unknown_plugin`.
 Draft POST /api/rescore does not mint an ICP version. CSV and
 People Search both `Arrive`. Contact is derived, never a column.
 
   GET  /                            the UI
-  GET  /api/status                  client, ICP summary, counts, key presence (never the key), cache stats
+  GET  /api/status                  client, ICP summary, counts, key presence (never the key), mounts summary, cache stats
   GET  /api/leads                   all leads (inputs only)
   GET  /api/leads/{id}              one lead + its result from cache (zero Jev calls)
   GET  /api/results                 every cached result re-scored under the live ICP (zero Jev calls) + totals + metrics
@@ -31,6 +32,9 @@ People Search both `Arrive`. Contact is derived, never a column.
   POST /api/leads/{id}/command      Flag | Dismiss | Queue | HandOff | RecordReply → 409 named refusal
   POST /api/leads/{id}/reply        {text} → RecordReply of body, then rescore from the new message
   POST /api/inbound                 vendor-blind InboundHint + text → match then RecordReply
+  GET  /api/integrations            Channel Out slots, occupancy, ready, candidates (never keys)
+  POST /api/integrations/mount      {channel, plugin_id} → 409 capability_mismatch | unknown_plugin
+  POST /api/integrations/unmount    {channel}
 """
 
 from __future__ import annotations
@@ -60,8 +64,9 @@ from .leads import Lead, load_crm, load_gold, load_leads, load_playbook
 from .metrics import compute_metrics
 from .pipeline import Qualifier, run_totals
 from .relay import RelayLoop
-from .bindings import get_bindings
+from .bindings import get_bindings, invalidate_bindings
 from .comms import drain_outbound
+from .integrations import ComposeErr, mounts_status, plugin_id, slot_snapshot, try_mount
 from .inbound import UnknownSender, decode_hint, match_inbound
 from .workitem import (
     Err,
@@ -69,6 +74,7 @@ from .workitem import (
     Open,
     Unjudged,
     contact_json,
+    decode_channel,
     draft_for_handoff,
     draft_for_queue,
     encode_draft,
@@ -204,7 +210,7 @@ def status() -> dict[str, Any]:
         "cache": {"leads": len(cache), **cache.history()}, "apollo": apollo.status(), "workers": config.workers(),
         "icp_version_id": icp_mod.live_version_id(),
         "hubspot": {"write": config.hubspot_write_enabled(), "has_token": config.hubspot_token() is not None},
-        "instantly": {"send": config.instantly_send_enabled(), "has_key": config.instantly_api_key() is not None},
+        "mounts": mounts_status(get_ledger()),
         "review": len(get_ledger().list_held()),
     }
 
@@ -626,3 +632,44 @@ def inbound_reply(body: InboundBody) -> dict[str, Any]:
     if isinstance(found, UnknownSender):
         raise HTTPException(409, {"refusal": "unknown_sender"})
     return land_reply(found.work_item_id, body.text)
+
+
+class MountBody(BaseModel):
+    channel: str
+    plugin_id: str
+
+
+class UnmountBody(BaseModel):
+    channel: str
+
+
+@app.get("/api/integrations")
+def integrations_get() -> dict[str, Any]:
+    """Channel Out slots. Occupancy and ready, never a secret value."""
+    return {"slots": slot_snapshot(get_ledger())}
+
+
+@app.post("/api/integrations/mount")
+def integrations_mount(body: MountBody) -> dict[str, Any]:
+    try:
+        ch = decode_channel(body.channel)
+        pid = plugin_id(body.plugin_id)
+    except ValueError as exc:
+        raise HTTPException(422, str(exc))
+    out = try_mount(get_ledger(), ch, pid)
+    if isinstance(out, ComposeErr):
+        raise HTTPException(409, {"refusal": out.error.kind})
+    get_ledger().put_mount(ch.kind, pid.value)
+    invalidate_bindings()
+    return {"slots": slot_snapshot(get_ledger())}
+
+
+@app.post("/api/integrations/unmount")
+def integrations_unmount(body: UnmountBody) -> dict[str, Any]:
+    try:
+        ch = decode_channel(body.channel)
+    except ValueError as exc:
+        raise HTTPException(422, str(exc))
+    get_ledger().delete_mount(ch.kind)
+    invalidate_bindings()
+    return {"slots": slot_snapshot(get_ledger())}

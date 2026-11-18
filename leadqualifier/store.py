@@ -3,6 +3,8 @@
 TEACHING NOTE: this module opens the database and applies schema. It does not
 know a work item. Callers go through `ledger.py`. Unions live as CHECK columns
 plus a decoder with one constructor that can fail (`workitem.decode_*`).
+`comms_mount` is occupancy (plugin id on a Channel). Absence is Unmounted.
+Secrets are not stored here.
 
 ⭐ ENFORCED BY: `tests/test_ledger.py` (junk `arrival_kind` raises with the field
 named; a second connection sees a committed row). 🔴 UNENFORCED: nothing stops a
@@ -90,6 +92,13 @@ CREATE TABLE IF NOT EXISTS account_snapshot (
   domain TEXT PRIMARY KEY,
   body_json TEXT NOT NULL,
   fetched_at TEXT NOT NULL
+);
+
+CREATE TABLE IF NOT EXISTS comms_mount (
+  channel TEXT PRIMARY KEY CHECK (channel IN (
+    'email', 'linkedin', 'voice', 'sms', 'ringless_voicemail'
+  )),
+  plugin_id TEXT NOT NULL CHECK (plugin_id != '')
 );
 """
 

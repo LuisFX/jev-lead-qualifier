@@ -3,7 +3,9 @@
 TEACHING NOTE: a secret is a process-environment value. This module names the
 variables; it never prints them. `APOLLO_ENRICH` gates organisation enrich only.
 People Search gates on `APOLLO_API_KEY` alone. HubSpot write needs `HUBSPOT_WRITE=1`
-and a token. Instantly send needs `INSTANTLY_SEND=1`, a key, and a campaign id.
+and a token. Email-plugin **ready** is key + campaign id. Occupancy is a sqlite
+mount, not `INSTANTLY_SEND`. `instantly_send_enabled` remains for the skipped
+live probe only — composition does not read it.
 ⭐ ENFORCED BY: callers use these functions; 🔴 UNENFORCED: nothing
 stops a caller from `os.environ.get` beside this file.
 """

@@ -2,9 +2,10 @@
 
    TEACHING NOTE: Elmish shape in the host — `state` is the Model; clicks send
    commands (`api(...)`) rather than mutating disposition in the page. Location
-   is the hash: `#lead/{id}`, `#review`. Mode is Viewing | Reviewing. Contact
-   is whatever the API derived (`contactOf`); the page never stores an email.
+   is the hash: `#lead/{id}`, `#review`, `#connect`. Mode is Viewing | Reviewing.
+   Contact is whatever the API derived (`contactOf`); the page never stores an email.
    `seq` drops a stale HTTP reply. Outbound is the sequencer slot; Relay stays HubSpot.
+   `#connect` holds slot ids, not plugin objects. Msg = Mounted | Unmounted | Loaded.
    The lead view shows Channel + Offer kind (copy, question, calendar, …), not a raw body.
    ⭐ ENFORCED BY: the lead/review API. 🔴 UNENFORCED: nothing typechecks this file.
 */
@@ -82,7 +83,8 @@
     return `pending ${ch}${label ? " · " + label : ""}`;
   };
   const state = { status: null, leads: [], leadsById: {}, results: {}, totals: null, metrics: null, icp: null, icpDraft: null, presets: [], playbook: null,
-                  currentLead: null, running: false, lastRun: null, evidenceOff: new Set(), filters: {}, mode: "viewing", seq: 0 };
+                  currentLead: null, running: false, lastRun: null, evidenceOff: new Set(), filters: {}, mode: "viewing", seq: 0,
+                  connect: { seq: 0, slots: [] } };
   const session = { cost: 0, requests: 0, latencies: [] };
 
   // ------------------------------------------------------------------ theme
@@ -96,7 +98,7 @@
     if (name === "icp") loadICP();
     if (name === "explore") renderExplore();
     if (name === "accuracy") renderAccuracy();
-    if (name === "connect") renderConnect();
+    if (name === "connect") loadConnect();
     if (name === "review") { state.mode = "reviewing"; loadReview(); } else state.mode = "viewing";
     if (name === "lead" && !state.currentLead && state.leads.length) openLead(state.leads[0].id);
     if (name === "lead" && state.currentLead) history.replaceState(null, "", `#lead/${state.currentLead}`);
@@ -725,17 +727,74 @@
   }
 
   // ------------------------------------------------------------------ connect
-  const INPUTS = [["W", "Website forms", "Webhook from Typeform, Webflow, HubSpot forms or a plain HTML form — message + page context"], ["I", "Instantly · Apollo replies", "Reply webhooks from cold-email tools; the thread is the message, the export row is the profile"], ["L", "LinkedIn exports & DMs", "CSV exports of connections or Sales Navigator lists; DMs pasted or forwarded"], ["M", "Shared inbox (IMAP)", "hello@ / sales@ read-only; nothing marked as read"]];
-  const OUTPUTS = [["H", "HubSpot", "Hand off a Hot lead: tier, route, fit, intent, primary pain and next action go on a test contact (or a note on an existing company). Off until HubSpot write is switched on."], ["C", "Founder call draft", "Hot leads get two proposed slots in the Voice draft. A dialer is not bound; FakeComms records the authorize."], ["S", "Email sequence", "Queue a warm lead: FakeComms records the send. Instantly is off until INSTANTLY_SEND=1."], ["N", "Nurture & decline drafts", "Nurture is a decision with no personal send. Decline stays a draft a human glances."]];
+  const INPUTS = [["W", "Website forms", "Webhook from Typeform, Webflow, HubSpot forms or a plain HTML form — message + page context"], ["C", "CSV exports", "People Search and CSV Arrive. Paste a reply on the lead. Inbound match is a hint, not a vendor webhook parser."], ["L", "LinkedIn exports & DMs", "CSV exports of connections or Sales Navigator lists; DMs pasted or forwarded"], ["M", "Shared inbox (IMAP)", "hello@ / sales@ read-only; nothing marked as read"]];
+  const CHANNEL_LABEL = { email: "Email", linkedin: "LinkedIn", voice: "Voice", sms: "Sms", ringless_voicemail: "Ringless voicemail" };
+  async function loadConnect() {
+    const seq = ++state.connect.seq;
+    try {
+      const snap = await api("/api/integrations");
+      if (seq !== state.connect.seq) return;
+      state.connect.slots = snap.slots || [];
+      renderConnect();
+    } catch (e) {
+      if (seq === state.connect.seq) toast(e.message, true);
+    }
+  }
+  async function mountSlot(channel, pluginId) {
+    const seq = ++state.connect.seq;
+    try {
+      const snap = await api("/api/integrations/mount", { method: "POST", body: JSON.stringify({ channel, plugin_id: pluginId }) });
+      if (seq !== state.connect.seq) return;
+      state.connect.slots = snap.slots || [];
+      renderConnect();
+    } catch (e) {
+      if (seq === state.connect.seq) toast(e.message, true);
+    }
+  }
+  async function unmountSlot(channel) {
+    const seq = ++state.connect.seq;
+    try {
+      const snap = await api("/api/integrations/unmount", { method: "POST", body: JSON.stringify({ channel }) });
+      if (seq !== state.connect.seq) return;
+      state.connect.slots = snap.slots || [];
+      renderConnect();
+    } catch (e) {
+      if (seq === state.connect.seq) toast(e.message, true);
+    }
+  }
   function renderConnect() {
     const inp = $("#connect-inputs"); inp.innerHTML = ""; for (const [ic, nm, ds] of INPUTS) inp.append(el("div", { class: "connector" }, el("span", { class: "ic" }, ic), el("div", {}, el("div", { class: "nm" }, nm), el("div", { class: "ds" }, ds)), el("span", { class: "pill" }, "webhook · CSV")));
-    const out = $("#connect-outputs"); out.innerHTML = ""; for (const [ic, nm, ds] of OUTPUTS) out.append(el("div", { class: "connector" }, el("span", { class: "ic" }, ic), el("div", {}, el("div", { class: "nm" }, nm), el("div", { class: "ds" }, ds)), el("span", { class: "pill" }, "API")));
+    const out = $("#connect-outputs"); out.innerHTML = "";
+    const slots = state.connect.slots.length ? state.connect.slots : ["email", "linkedin", "voice", "sms", "ringless_voicemail"].map((channel) => ({ channel, mount: { kind: "unmounted" }, ready: true, needs_credential: false, candidates: [] }));
+    for (const slot of slots) {
+      const mounted = slot.mount && slot.mount.kind === "mounted";
+      const occupying = mounted ? slot.mount.plugin_id : "Fake";
+      const cred = slot.needs_credential ? "needs a credential — restart after adding the key" : (slot.ready ? "ready" : "");
+      const actions = el("div", { class: "slot-actions" });
+      if (mounted) {
+        const btn = el("button", { class: "btn small", type: "button" }, "Unmount");
+        btn.addEventListener("click", () => unmountSlot(slot.channel));
+        actions.append(btn);
+      } else if ((slot.candidates || []).length) {
+        const sel = el("select", { class: "select" }, ...slot.candidates.map((id) => el("option", { value: id }, id)));
+        const btn = el("button", { class: "btn small", type: "button" }, "Mount");
+        btn.addEventListener("click", () => mountSlot(slot.channel, sel.value));
+        actions.append(sel, btn);
+      } else {
+        actions.append(el("div", { class: "slot-hint" }, "Fake only — no plugin for this channel"));
+      }
+      out.append(el("div", { class: "channel-slot", "data-channel": slot.channel },
+        el("div", { class: "slot-name" }, CHANNEL_LABEL[slot.channel] || slot.channel),
+        el("div", { class: "slot-occ" }, occupying),
+        el("span", { class: "pill" + (slot.needs_credential ? " bad" : " good") }, cred),
+        actions
+      ));
+    }
     const s = state.status || {};
     const ap = s.apollo || {}; const pill = $("#apollo-pill"); pill.className = "pill " + (ap.enabled ? "good" : ""); pill.textContent = ap.enabled ? `enabled · ${ap.cached} cached` : ap.has_key ? "key present · flag off (APOLLO_ENRICH=1)" : "off — no key";
     $("#btn-apollo").disabled = !ap.enabled;
     const kv = $("#connect-kv"); kv.innerHTML = "";
-    const inst = s.instantly || {};
-    kv.append(kvNode("Model", s.model, "mono"), kvNode("Endpoint", "api.typesafe.ai/v1/systemone", "mono"), kvNode("API key", s.jev_key ? "set (server-side only)" : "missing"), kvNode("Price", `$${s.price_per_m} / M input tokens · output free`), kvNode("Answers cached", `${s.cache?.leads ?? 0} leads · ${s.cache?.requests ?? 0} requests`), kvNode("Workers", `${s.workers} parallel requests`), kvNode("Instantly", inst.send ? "send on" : inst.has_key ? "key present · INSTANTLY_SEND off" : "FakeComms"));
+    kv.append(kvNode("Model", s.model, "mono"), kvNode("Endpoint", "api.typesafe.ai/v1/systemone", "mono"), kvNode("API key", s.jev_key ? "set (server-side only)" : "missing"), kvNode("Price", `$${s.price_per_m} / M input tokens · output free`), kvNode("Answers cached", `${s.cache?.leads ?? 0} leads · ${s.cache?.requests ?? 0} requests`), kvNode("Workers", `${s.workers} parallel requests`), kvNode("HubSpot write", s.hubspot?.write ? "on (Relay, env)" : "off — Relay, env, not this board"));
   }
   $("#btn-apollo").addEventListener("click", async () => {
     const btn = $("#btn-apollo"); busy(btn, true); const out = $("#apollo-result"); out.innerHTML = "";

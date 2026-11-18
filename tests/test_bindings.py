@@ -23,6 +23,7 @@ from leadqualifier.workitem import (
     ImportId,
     Judged,
     Queue,
+    Email,
     Sms,
     Unjudged,
     email_draft,
@@ -107,7 +108,7 @@ def test_incomplete_map_sms_is_channel_unbound():
     assert row["outbound_reason"] == "channel_unbound"
 
 
-def test_with_email_leaves_voice_on_fake():
+def test_with_channel_leaves_voice_on_fake():
     ledger = get_ledger()
     _arrive("B-swap-v", phone="+494012345")
     _arrive("B-swap-e", email="ada@secret.test")
@@ -115,7 +116,7 @@ def test_with_email_leaves_voice_on_fake():
     assert isinstance(ledger.apply_command("B-swap-e", Queue(email_draft()), _warm()), ApplyOk)
     fake = FakeComms()
     spy = EmailSpy()
-    bindings = fake_bindings(fake).with_email(spy)
+    bindings = fake_bindings(fake).with_channel(Email(), spy)
     out = drain_outbound(ledger, bindings)
     assert out["dispatched"] == 2
     assert fake.calls[0]["channel"] == "voice"

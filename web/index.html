@@ -283,17 +283,17 @@
 <section class="page" id="page-connect">
   <div class="sec">
     <div class="eyebrow">Connect</div>
-    <h2>Plugs into what the client already uses.</h2>
-    <p class="sub">Inputs arrive as webhooks or exports; results go back into the CRM as properties. No new inbox, no new dashboard to babysit.</p>
+    <h2>Mount a provider onto a channel.</h2>
+    <p class="sub">Unmounted is Fake. A plugin occupies a slot only if it can send on that channel. HubSpot write is Relay, env, not this board. After adding a key, restart the process — credentials are read at boot, never stored here.</p>
   </div>
   <div class="grid-connect">
+    <div class="card" style="grid-column: 1 / -1">
+      <div class="card-head"><div><div class="eyebrow">Outputs</div><h3>Channel Out</h3></div></div>
+      <div class="channel-slots" id="connect-outputs"></div>
+    </div>
     <div class="card">
       <div class="card-head"><div><div class="eyebrow">Inputs</div><h3>Where leads come from</h3></div></div>
       <div class="connectors" id="connect-inputs"></div>
-    </div>
-    <div class="card">
-      <div class="card-head"><div><div class="eyebrow">Outputs</div><h3>Where decisions go</h3></div></div>
-      <div class="connectors" id="connect-outputs"></div>
     </div>
     <div class="card">
       <div class="card-head"><div><div class="eyebrow">Optional enrichment</div><h3>Enrich via Apollo</h3></div><span class="pill" id="apollo-pill">checking…</span></div>

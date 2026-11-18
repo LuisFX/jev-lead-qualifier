@@ -9,6 +9,8 @@ What this does not do: talk to Jev, HubSpot, Apollo, or a sequencer vendor. Port
 sit in their modules and call `apply_command` / `put_answer`. Sequencer state lives
 in `outbound_*` columns, not `relay_*`. Pending drafts store `outbound_offer_kind`
 + `outbound_offer_json`. The decoder does not read leftover `outbound_body`.
+`comms_mount` is occupancy (plugin id on a Channel). Absence is Unmounted.
+Secrets are not stored here.
 
 ⭐ ENFORCED BY: `tests/test_ledger.py` (persist-then-reconnect; seed 65 idempotent).
 """
@@ -561,6 +563,28 @@ class Ledger:
                    ON CONFLICT(domain) DO UPDATE SET body_json=excluded.body_json, fetched_at=excluded.fetched_at""",
                 (domain, json.dumps(payload, ensure_ascii=False), at),
             )
+            self._conn.commit()
+
+    def list_mounts(self) -> dict[str, str]:
+        """channel kind → plugin_id. Absence of a row is Unmounted."""
+        with self._lock:
+            rows = self._conn.execute("SELECT channel, plugin_id FROM comms_mount").fetchall()
+        return {str(r["channel"]): str(r["plugin_id"]) for r in rows}
+
+    def put_mount(self, channel: str, plugin_id: str) -> None:
+        if not plugin_id or plugin_id == "fake":
+            raise ValueError("plugin_id")
+        with self._lock:
+            self._conn.execute(
+                """INSERT INTO comms_mount(channel, plugin_id) VALUES (?, ?)
+                   ON CONFLICT(channel) DO UPDATE SET plugin_id=excluded.plugin_id""",
+                (channel, plugin_id),
+            )
+            self._conn.commit()
+
+    def delete_mount(self, channel: str) -> None:
+        with self._lock:
+            self._conn.execute("DELETE FROM comms_mount WHERE channel = ?", (channel,))
             self._conn.commit()
 
     def get_account_snapshot(self, domain: str) -> dict[str, Any] | None:

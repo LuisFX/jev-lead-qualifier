@@ -12,7 +12,7 @@ tags: [board]
 
 # Board — comms layer
 
-Hub: [[HANDOFF-MEMORY]]. Glance: [[ARCHITECTURE-AT-A-GLANCE_v2_comms-layer]] (v1 superseded). Design: [[ARCHITECTURE]]. Tombstones: [[TOMBSTONES]].
+Hub: [[HANDOFF-MEMORY]]. Glance: [[ARCHITECTURE-AT-A-GLANCE_v3_integrations]] (v2 superseded). Design: [[ARCHITECTURE]]. Tombstones: [[TOMBSTONES]].
 
 ## Legend
 
@@ -38,6 +38,7 @@ Hub: [[HANDOFF-MEMORY]]. Glance: [[ARCHITECTURE-AT-A-GLANCE_v2_comms-layer]] (v1
 | 5 · Channel + Offer | cl-008 cl-010 | `dotnet fsi leadqualifier/workitem.fsx` 0 failed, floor up | ✅ 2026-11-18 |
 | 6 · Bindings per channel | cl-009 | Fake per channel; Email adapter does not mention Voice | ✅ 2026-11-18 |
 | 7 · Inbound match | cl-011 | UnknownSender named; paste still works | ✅ 2026-11-18 |
+| 8 · Catalog, mounts, Connect | cl-012 cl-013 cl-014 | Fake Connect smoke: five slots, mount Email, `plugin_unready`, unmount Fake, Voice 409 | ✅ 2026-11-18 |
 
 ## Tickets
 
@@ -54,3 +55,6 @@ Hub: [[HANDOFF-MEMORY]]. Glance: [[ARCHITECTURE-AT-A-GLANCE_v2_comms-layer]] (v1
 | 009 | [Bindings per channel](2026-11-18-cl-009-bindings-per-channel.md) | 6 | 008 | ✅ |
 | 010 | [Draft carries Offer](2026-11-18-cl-010-offer.md) | 5 | — | ✅ |
 | 011 | [InboundMatch then RecordReply](2026-11-18-cl-011-inbound-match.md) | 7 | 002 | ✅ |
+| 012 | [Catalog, mounts, compose](2026-11-18-cl-012-catalog-compose.md) | 8 | 009 | ✅ |
+| 013 | [Connect is the mount board](2026-11-18-cl-013-connect-board.md) | 8 | 012 | ✅ |
+| 014 | [Retire INSTANTLY_SEND as the Email switch](2026-11-18-cl-014-retire-instantly-send.md) | 8 | 012 | ✅ |

@@ -5,14 +5,17 @@ aliases: [glance-v2-comms]
 date: 2026-11-18
 type: research
 arc: 2026-11-18-comms-layer
-status: live
-read_order: 2
+status: superseded
+read_order: 17
 supersedes: ARCHITECTURE-AT-A-GLANCE_v1_comms-layer.md
+superseded_by: ARCHITECTURE-AT-A-GLANCE_v3_integrations.md
 confirmed: 2026-11-18
 tags: [architecture, glance, comms]
 ---
 
 # At a glance v2 — channel is not a vendor
+
+**Superseded 2026-11-18 by [[ARCHITECTURE-AT-A-GLANCE_v3_integrations]].** Keep as evidence of what waves 5–7 built against. The hole: composition still swapped Email on `INSTANTLY_SEND`, and Connect was brochure copy.
 
 Hub: [[HANDOFF-MEMORY|hub]]. Supersedes [[ARCHITECTURE-AT-A-GLANCE_v1_comms-layer]]. Parent glance (intake): [intake v1](../2026-11-17-intake-rank-handoff/ARCHITECTURE-AT-A-GLANCE_v1_intake-rank-handoff.md).
 

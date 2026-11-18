@@ -12,7 +12,7 @@ tags: [tombstones]
 
 # Tombstones — comms layer
 
-Hub: [[HANDOFF-MEMORY|hub]]. Glance: [[ARCHITECTURE-AT-A-GLANCE_v2_comms-layer]].
+Hub: [[HANDOFF-MEMORY|hub]]. Glance: [[ARCHITECTURE-AT-A-GLANCE_v3_integrations]].
 
 | What | Lived | Replaced by | Status |
 | --- | --- | --- | --- |
@@ -21,3 +21,7 @@ Hub: [[HANDOFF-MEMORY|hub]]. Glance: [[ARCHITECTURE-AT-A-GLANCE_v2_comms-layer]]
 | `default_comms` Instantly-or-Fake boolean | `leadqualifier/comms.py` (deleted) | `Bindings` / `default_bindings` Fake-all, Email key swappable | 🪦 buried 2026-11-18 |
 | Glance v1 as SSOT | this arc's hub read order 2 | glance v2 | 🪦 v1 `status: superseded` 2026-11-18 |
 | Inbound is paste as the **only** door | [[2026-11-18-inbound-is-paste]] | Two hosts of `RecordReply`: paste `/api/leads/{id}/reply` and match `/api/inbound` | 🪦 buried 2026-11-18 — paste remains a door |
+| `INSTANTLY_SEND` as the Email switch | `leadqualifier/bindings.py` `default_bindings`; `config.instantly_send_enabled` | sqlite `comms_mount` + `compose`; ready is key + campaign id | 🪦 buried 2026-11-18 — `rg INSTANTLY_SEND leadqualifier/bindings.py` → 0. `instantly_send_enabled` remains for the skipped live probe only |
+| `default_bindings` Instantly-or-Fake boolean | `leadqualifier/bindings.py` L18–L24 (wave 6) | `compose(catalog, load_mounts())`; Fake fills Unmounted | 🪦 buried 2026-11-18 |
+| Connect brochure as the integrations UX | `web/app.js` `renderConnect` INPUTS/OUTPUTS literals | five Channel Out cards; Mount / Unmount; HubSpot is one line of copy | 🪦 buried 2026-11-18 |
+| Glance v2 as SSOT | this arc's hub read order 2 | glance v3 | 🪦 v2 `status: superseded` 2026-11-18 |

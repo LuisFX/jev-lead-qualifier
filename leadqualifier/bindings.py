@@ -1,27 +1,26 @@
-"""Host composition: Bindings = Map Channel → Comms.
+"""Host composition: Bindings = compose(catalog, mounts).
 
-TEACHING NOTE: Fake fills every key. A live Email vendor, when env is on,
-replaces only the Email key. This file is the only Instantly import.
-`decide` does not import it. `comms.py` does not import it.
+TEACHING NOTE: Fake fills Unmounted. A mounted plugin occupies that
+channel only if the catalog declares Send of it. Occupancy is sqlite
+mounts, not an env send flag. The Email factory is imported from
+`integrations.py`, not here. Mount/unmount invalidates the singleton;
+env keys still require process restart.
 
-⭐ ENFORCED BY: `tests/test_bindings.py`.
+⭐ ENFORCED BY: `tests/test_integrations.py`, `tests/test_bindings.py`.
 """
 
 from __future__ import annotations
 
-from . import config
 from .comms import Bindings, FakeComms, fake_bindings
 
 _bindings: Bindings | None = None
 
 
 def default_bindings() -> Bindings:
-    b = fake_bindings()
-    if config.instantly_send_enabled():
-        from .instantly import InstantlyEmail
+    from .integrations import compose_from_ledger
+    from .ledger import get_ledger
 
-        b = b.with_email(InstantlyEmail())
-    return b
+    return compose_from_ledger(get_ledger())
 
 
 def get_bindings() -> Bindings:
@@ -29,6 +28,11 @@ def get_bindings() -> Bindings:
     if _bindings is None:
         _bindings = default_bindings()
     return _bindings
+
+
+def invalidate_bindings() -> None:
+    global _bindings
+    _bindings = None
 
 
 def reset_bindings_for_tests(bindings: Bindings | None = None) -> Bindings:
